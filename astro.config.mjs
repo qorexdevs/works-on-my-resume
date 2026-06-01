@@ -3,10 +3,10 @@ import { defineConfig } from 'astro/config';
 import react from '@astrojs/react';
 
 // Works on My Resume is a fully static, local-first app.
-// Deployed to GitHub Pages at https://williamzujkowski.github.io/works-on-my-resume/
+// Deployed to GitHub Pages at https://qorexdevs.github.io/works-on-my-resume/
 // https://astro.build/config
 export default defineConfig({
-  site: 'https://williamzujkowski.github.io',
+  site: 'https://qorexdevs.github.io',
   base: '/works-on-my-resume',
   output: 'static',
   integrations: [react()],

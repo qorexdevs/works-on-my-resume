@@ -5,10 +5,10 @@
   "private": true,
   "description": "A static, local-first Markdown resume renderer with OKLCH terminal themes, print-friendly output, and no backend.",
   "license": "MIT",
-  "homepage": "https://williamzujkowski.github.io/works-on-my-resume/",
+  "homepage": "https://qorexdevs.github.io/works-on-my-resume/",
   "repository": {
     "type": "git",
-    "url": "https://github.com/williamzujkowski/works-on-my-resume.git"
+    "url": "https://github.com/qorexdevs/works-on-my-resume.git"
   },
   "engines": {
     "node": ">=22.12.0"

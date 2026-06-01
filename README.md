@@ -144,7 +144,7 @@ site with `withastro/action` and publishes it with `actions/deploy-pages` on
 every push to `main` (and on manual dispatch).
 
 The published site lives at
-<https://williamzujkowski.github.io/works-on-my-resume/>. The `site` and
+<https://qorexdevs.github.io/works-on-my-resume/>. The `site` and
 `base` values are configured in `astro.config.mjs`.
 
 ## Theme system
