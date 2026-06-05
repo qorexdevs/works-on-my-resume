@@ -41,7 +41,8 @@ This is a fully static, local-first application.
 Uploaded and pasted Markdown is treated as **untrusted input** and is run
 through a defensive pipeline before anything reaches the DOM:
 
-1. **`gray-matter`** — extracts YAML frontmatter from the Markdown source.
+1. **`js-yaml`** — parses the optional YAML frontmatter that a small regex
+   splits off the top of the Markdown source.
 2. **`marked`** — renders the Markdown body to HTML with GitHub Flavored
    Markdown (GFM) enabled.
 3. **`DOMPurify`** — sanitizes the rendered HTML before it is inserted into
@@ -69,6 +70,7 @@ contains no scripts and makes no network requests.
 - Print-friendly output with a dedicated `@media print` stylesheet.
 - Three export formats: Markdown (`.md`), standalone HTML (`.html`), and
   theme CSS (`.css`).
+- JSON Resume import and export, plus an ATS plain-text export mode.
 - Shareable theme-only links.
 - Strict TypeScript throughout; no runtime backend.
 
@@ -167,10 +169,8 @@ The MVP focuses on render, theme, print, and export. Post-MVP work is tracked
 in the repository's **GitHub issues and milestones**, and includes ideas such
 as:
 
-- JSON Resume import/export.
 - Theme contrast scoring surfaced in the UI.
 - Additional layout templates.
-- An ATS (applicant tracking system) preview mode.
 - Opt-in draft autosave to local storage.
 - ZIP export bundling Markdown, HTML, and theme CSS together.
 
@@ -180,8 +180,7 @@ as:
 - **TypeScript** — strict mode throughout.
 - **React** — used as a single interactive island for the editor/preview UI.
 - **[marked](https://marked.js.org/)** — Markdown → HTML rendering (GFM).
-- **[gray-matter](https://github.com/jonschlinkert/gray-matter)** — YAML
-  frontmatter parsing.
+- **[js-yaml](https://github.com/nodeca/js-yaml)** — YAML frontmatter parsing.
 - **[DOMPurify](https://github.com/cure53/DOMPurify)** — HTML sanitization.
 
 ## License
