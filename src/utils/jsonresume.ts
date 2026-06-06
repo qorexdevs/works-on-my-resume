@@ -220,11 +220,13 @@ function parseExperienceSection(lines: string[], start: number, end: number): Js
       const italicMatch = /^_(.+)_$/.exec(trimmed);
       if (italicMatch && startDate === undefined) {
         const meta = italicMatch[1];
-        // Split on the centered-dot bullet first, then on en/em dash for dates.
+        // Split on the centered-dot bullet first, then on the date range dash.
         const segments = meta.split(/\s·\s|\s\|\s/).map((s) => s.trim());
         const dateSeg = segments.shift();
         if (dateSeg) {
-          const dateParts = dateSeg.split(/\s*[–—-]\s*/);
+          // En/em dash anywhere, but a plain hyphen only when spaced, so ISO
+          // dates like 2021-03-01 are not torn apart at their own hyphens.
+          const dateParts = dateSeg.split(/\s*[–—]\s*|\s+-\s+/);
           if (dateParts[0]) startDate = dateParts[0].trim();
           if (dateParts[1]) endDate = dateParts[1].trim();
         }
@@ -302,7 +304,7 @@ function parseEducationSection(lines: string[], start: number, end: number): Jso
       const italicMatch = /^_(.+)_$/.exec(trimmed);
       if (italicMatch && startDate === undefined) {
         const meta = italicMatch[1].split(/\s·\s|\s\|\s/)[0]?.trim() ?? '';
-        const dateParts = meta.split(/\s*[–—-]\s*/);
+        const dateParts = meta.split(/\s*[–—]\s*|\s+-\s+/);
         if (dateParts[0]) startDate = dateParts[0].trim();
         if (dateParts[1]) endDate = dateParts[1].trim();
         continue;
