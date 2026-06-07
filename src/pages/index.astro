@@ -15,17 +15,19 @@ import ResumeStudio from '../components/ResumeStudio.tsx';
   <a class="skip-link" href="#studio">Skip to the resume workbench</a>
   <div class="app-shell">
     {
-      /* Each direct child carries a --i index that drives the staggered
-        page-load reveal in global.css. Collapses to the final state
-        instantly under prefers-reduced-motion. */
+      /* Each direct child carries a reveal--N modifier that sets the --i
+        index driving the staggered page-load reveal in global.css. Done
+        via classes, not style="--i: N" — inline style attributes are
+        blocked by the CSP (style-src has no 'unsafe-inline'). Collapses
+        to the final state instantly under prefers-reduced-motion. */
     }
-    <div class="reveal" style="--i: 0">
+    <div class="reveal">
       <AppHeader />
     </div>
-    <div class="reveal" style="--i: 1">
+    <div class="reveal reveal--1">
       <PrivacyNotice />
     </div>
-    <main id="studio" class="reveal" style="--i: 2">
+    <main id="studio" class="reveal reveal--2">
       <ResumeStudio client:load />
     </main>
   </div>

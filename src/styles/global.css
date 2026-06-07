@@ -218,15 +218,26 @@ a {
 }
 
 /*
- * Each `.reveal` element carries a `--i` index (set inline in index.astro).
- * They fade + rise in sequence, driven purely by `animation-delay`. Under
- * prefers-reduced-motion the block below neutralizes `animation-duration`,
- * and `animation-fill-mode: both` keeps the final visible state — so the
- * page simply appears, fully composed, with no flash of hidden content.
+ * Each `.reveal` element carries a `--i` index (set by the `reveal--N`
+ * modifier classes below; index.astro used to set it via `style="--i: N"`,
+ * but the CSP blocks style attributes, which silently flattened the
+ * stagger). They fade + rise in sequence, driven purely by
+ * `animation-delay`. Under prefers-reduced-motion the block below
+ * neutralizes `animation-duration`, and `animation-fill-mode: both` keeps
+ * the final visible state — so the page simply appears, fully composed,
+ * with no flash of hidden content.
  */
 .reveal {
   animation: reveal-rise 460ms cubic-bezier(0.22, 1, 0.36, 1) both;
   animation-delay: calc(var(--i, 0) * 90ms);
+}
+
+.reveal--1 {
+  --i: 1;
+}
+
+.reveal--2 {
+  --i: 2;
 }
 
 /* The studio reveal wrapper must keep filling the shell like the old
