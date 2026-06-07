@@ -3,16 +3,21 @@
 **Markdown in. Resume out. No servers harmed.**
 
 A static, local-first Markdown resume renderer. Bring a Markdown resume,
-preview it instantly, dress it in one of 545 OKLCH terminal themes, print it,
+preview it instantly, dress it in one of 465 OKLCH terminal themes, print it,
 or export it — all in your browser. There is no backend, no account, and no
 analytics. Your resume never leaves your machine.
+
+**[Try it live](https://qorexdevs.github.io/works-on-my-resume/)** — nothing
+to install.
+
+![The resume studio: Markdown editor on the left, themed live preview on the right](docs/screenshot.png)
 
 ## What it does
 
 - **Bring your Markdown.** Upload a `.md` file or paste/type Markdown directly
   into the editor.
 - **Preview instantly.** The rendered resume updates as you edit.
-- **Cycle themes.** Browse 545 OKLCH terminal color themes, normalized into
+- **Cycle themes.** Browse 465 OKLCH terminal color themes, normalized into
   semantic resume tokens, and apply any of them with one click.
 - **Print.** A print-friendly stylesheet produces clean, ink-aware output via
   your browser's native print dialog — no PDF service involved.
@@ -32,8 +37,10 @@ This is a fully static, local-first application.
 - Shareable theme links carry **only the selected theme** (its slug). They
   never contain resume content.
 - Nothing is persisted across page reloads by default. Closing or reloading
-  the tab discards your in-progress resume. (An opt-in draft autosave is on
-  the roadmap; see below.)
+  the tab discards your in-progress resume, unless you switch on the opt-in
+  "Remember this resume on this device" toggle — that saves the Markdown to
+  your browser's local storage and nowhere else, and turning it off deletes
+  the saved copy.
 - There are no analytics, trackers, or third-party scripts.
 
 ## Security
@@ -66,7 +73,8 @@ contains no scripts and makes no network requests.
 - Markdown resume rendering with GFM support.
 - File upload **and** paste/type editing.
 - Live preview.
-- 545 OKLCH terminal themes, with an optional "resume-safe" contrast filter.
+- 465 OKLCH terminal themes — every one clears a 7:1 body-text contrast
+  floor, so all of them are safe to print.
 - Print-friendly output with a dedicated `@media print` stylesheet.
 - Three export formats: Markdown (`.md`), standalone HTML (`.html`), and
   theme CSS (`.css`).
@@ -153,15 +161,18 @@ The published site lives at
 
 Themes are sourced from the
 [`@williamzujkowski/oklch-terminal-themes`](https://github.com/williamzujkowski/oklch-terminal-themes)
-dataset — **545 OKLCH terminal color schemes**, vendored into the repository
-so the app needs no network access at runtime.
+dataset of 545 OKLCH terminal color schemes, vendored into the repository so
+the app needs no network access at runtime. The 80 schemes whose body text
+fell below the 7:1 resume-safe contrast threshold are dropped from the
+vendored dataset, leaving **465 themes** — every one of them comfortably
+legible.
 
 Each terminal theme is normalized into a small set of **semantic resume
 tokens** (background, foreground, muted, accent, accent-2, border, card, code
 background). The resume renderer consumes only these tokens — never raw
 terminal color slots — so any theme can drive the layout. Each theme also
-ships precomputed WCAG contrast metadata, which powers the optional
-"resume-safe themes only" filter.
+ships precomputed WCAG contrast metadata, surfaced as the contrast badge
+next to the theme name.
 
 ## Roadmap
 
@@ -169,9 +180,7 @@ The MVP focuses on render, theme, print, and export. Post-MVP work is tracked
 in the repository's **GitHub issues and milestones**, and includes ideas such
 as:
 
-- Theme contrast scoring surfaced in the UI.
 - Additional layout templates.
-- Opt-in draft autosave to local storage.
 - ZIP export bundling Markdown, HTML, and theme CSS together.
 
 ## Tech stack

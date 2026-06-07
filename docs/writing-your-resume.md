@@ -190,15 +190,13 @@ themes handle appearance — don't reach for raw HTML.
 
 ### Themes
 
-The app ships 545 color themes. **Themes only affect appearance** — they never
+The app ships 465 color themes. **Themes only affect appearance** — they never
 change your content or structure. Cycle them with the on-screen controls or the
 arrow keys; pick one with a `/` search.
 
-Each theme reports a body-text **contrast ratio**. A theme is **resume-safe**
-when that ratio clears 7:1, which guarantees comfortably readable text. The
-theme picker has a **"Resume-safe themes only"** toggle to filter the list down
-to that set, and the current theme shows a contrast badge so you can tell at a
-glance.
+Each theme reports a body-text **contrast ratio**, shown as a badge next to
+the theme name. Every shipped theme clears the 7:1 **resume-safe** threshold,
+which guarantees comfortably readable text — pick whichever you like.
 
 ### Printing and exporting
 
@@ -236,4 +234,4 @@ uploaded. Shareable theme links carry only the theme slug, never your content.
 - [ ] `##` for sections, `###` for job and degree entries.
 - [ ] Each entry: heading + an _italic date/location line_ + bullets.
 - [ ] No raw HTML — it will be stripped.
-- [ ] Pick a resume-safe theme; print in Conservative mode for ATS.
+- [ ] Print in Conservative mode for ATS.
