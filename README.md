@@ -34,13 +34,17 @@ This is a fully static, local-first application.
   the browser**.
 - The app does **not** upload, store, or transmit resume content — there is no
   server to send it to.
+- The one network request the app can make is the explicit **Import from
+  Gist**: a single anonymous GET to GitHub's public Gists API, issued only
+  when you paste a gist URL and click Import. It carries no resume content
+  outbound — the request is just the gist id.
 - Shareable theme links carry **only the selected theme** (its slug). They
   never contain resume content.
 - Nothing is persisted across page reloads by default. Closing or reloading
   the tab discards your in-progress resume, unless you switch on the opt-in
   "Remember this resume on this device" toggle — that saves the Markdown to
   your browser's local storage and nowhere else, and turning it off deletes
-  the saved copy.
+  the saved copy along with any version snapshots.
 - There are no analytics, trackers, or third-party scripts.
 
 ## Security
@@ -72,10 +76,20 @@ contains no scripts and makes no network requests.
 
 - Markdown resume rendering with GFM support.
 - File upload **and** paste/type editing.
+- Import from a public GitHub Gist — paste a gist URL, pick a file.
 - Live preview.
 - 465 OKLCH terminal themes — every one clears a 7:1 body-text contrast
   floor, so all of them are safe to print.
+- Three layout templates: Classic, Modern, and Compact.
 - Print-friendly output with a dedicated `@media print` stylesheet.
+- Page-fit indicator — estimated printed page count, per-section heights,
+  and a page-break ruler overlay.
+- Resume Health panel — a composite score with findings, tuned to a
+  junior / mid / senior rubric.
+- Tailor for a role — paste a job description and see your keyword overlap
+  (tech / soft / domain), with matches highlighted in the preview. Computed
+  locally; the JD never leaves the page.
+- Local version snapshots for A/B-ing resume variants (opt-in).
 - Three export formats: Markdown (`.md`), standalone HTML (`.html`), and
   theme CSS (`.css`).
 - JSON Resume import and export, plus an ATS plain-text export mode.
