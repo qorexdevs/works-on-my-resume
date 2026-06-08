@@ -22,7 +22,8 @@ to install.
 - **Print.** A print-friendly stylesheet produces clean, ink-aware output via
   your browser's native print dialog — no PDF service involved.
 - **Export.** Download the raw Markdown, a fully self-contained standalone
-  HTML file, or just the active theme as a `.css` file.
+  HTML file, the active theme as a `.css` file, or all three bundled into a
+  single `.zip`.
 
 Everything above happens locally, in the page.
 
@@ -90,8 +91,8 @@ contains no scripts and makes no network requests.
   (tech / soft / domain), with matches highlighted in the preview. Computed
   locally; the JD never leaves the page.
 - Local version snapshots for A/B-ing resume variants (opt-in).
-- Three export formats: Markdown (`.md`), standalone HTML (`.html`), and
-  theme CSS (`.css`).
+- Four export formats: Markdown (`.md`), standalone HTML (`.html`), theme
+  CSS (`.css`), and a `.zip` bundling all three.
 - JSON Resume import and export, plus an ATS plain-text export mode.
 - Shareable theme-only links.
 - Strict TypeScript throughout; no runtime backend.
@@ -195,7 +196,6 @@ in the repository's **GitHub issues and milestones**, and includes ideas such
 as:
 
 - Additional layout templates.
-- ZIP export bundling Markdown, HTML, and theme CSS together.
 
 ## Tech stack
 
