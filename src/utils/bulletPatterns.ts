@@ -202,6 +202,8 @@ export function leadWithOutcome(text: string): string | null {
  * a small inline tray of 2-3 entries.
  */
 const WEAK_VERBS: { pattern: RegExp; replacement: string; original: string }[] = [
+  // "Helped with X" before bare "Helped" so it doesn't become "Led with X".
+  { original: 'Helped with', pattern: /^Helped with\b/u, replacement: 'Led' },
   // "Helped X" → "Led X" (the most common case in early-career bullets).
   { original: 'Helped', pattern: /^Helped\b/u, replacement: 'Led' },
   // "Worked on X" → "Built X" — strips the activity-phrasing and ascribes ownership.
@@ -215,6 +217,10 @@ const WEAK_VERBS: { pattern: RegExp; replacement: string; original: string }[] =
   { original: 'Contributed to', pattern: /^Contributed to\b/u, replacement: 'Shipped' },
   { original: 'Tasked with', pattern: /^Tasked with\b/u, replacement: 'Owned' },
   { original: 'Involved in', pattern: /^Involved in\b/u, replacement: 'Led' },
+  { original: 'Collaborated on', pattern: /^Collaborated on\b/u, replacement: 'Built' },
+  { original: 'Engaged in', pattern: /^Engaged in\b/u, replacement: 'Led' },
+  { original: 'Took part in', pattern: /^Took part in\b/u, replacement: 'Led' },
+  { original: 'Aided', pattern: /^Aided\b/u, replacement: 'Drove' },
 ];
 
 /**
