@@ -79,6 +79,10 @@ const EXPERIENCE_HEADINGS = [
   'experience',
   'work experience',
   'professional experience',
+  'relevant experience',
+  'work history',
+  'career history',
+  'professional background',
   'employment',
   'employment history',
   'selected impact',
@@ -221,6 +225,10 @@ const WEAK_VERBS: { pattern: RegExp; replacement: string; original: string }[] =
   { original: 'Engaged in', pattern: /^Engaged in\b/u, replacement: 'Led' },
   { original: 'Took part in', pattern: /^Took part in\b/u, replacement: 'Led' },
   { original: 'Aided', pattern: /^Aided\b/u, replacement: 'Drove' },
+  // "Worked with X" reads as presence, not ownership — distinct from "Worked on".
+  { original: 'Worked with', pattern: /^Worked with\b/u, replacement: 'Partnered with' },
+  { original: 'Supported', pattern: /^Supported\b/u, replacement: 'Drove' },
+  { original: 'Handled', pattern: /^Handled\b/u, replacement: 'Owned' },
 ];
 
 /**
