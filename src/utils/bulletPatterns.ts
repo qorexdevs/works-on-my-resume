@@ -208,18 +208,24 @@ export function leadWithOutcome(text: string): string | null {
 const WEAK_VERBS: { pattern: RegExp; replacement: string; original: string }[] = [
   // "Helped with X" before bare "Helped" so it doesn't become "Led with X".
   { original: 'Helped with', pattern: /^Helped with\b/u, replacement: 'Led' },
+  // "Helped to X" before bare "Helped" too, so it doesn't become "Led to X".
+  { original: 'Helped to', pattern: /^Helped to\b/u, replacement: 'Led' },
   // "Helped X" → "Led X" (the most common case in early-career bullets).
   { original: 'Helped', pattern: /^Helped\b/u, replacement: 'Led' },
   // "Worked on X" → "Built X" — strips the activity-phrasing and ascribes ownership.
   { original: 'Worked on', pattern: /^Worked on\b/u, replacement: 'Built' },
   // "Responsible for X" → "Owned X" — collapses a noun-phrase opener to a verb.
   { original: 'Responsible for', pattern: /^Responsible for\b/u, replacement: 'Owned' },
+  // job-description leftovers that list duties instead of claiming them.
+  { original: 'Duties included', pattern: /^Duties included\b/u, replacement: 'Owned' },
+  { original: 'Responsibilities included', pattern: /^Responsibilities included\b/u, replacement: 'Owned' },
   { original: 'Assisted with', pattern: /^Assisted with\b/u, replacement: 'Drove' },
   { original: 'Assisted in', pattern: /^Assisted in\b/u, replacement: 'Drove' },
   { original: 'Assisted', pattern: /^Assisted\b/u, replacement: 'Drove' },
   { original: 'Participated in', pattern: /^Participated in\b/u, replacement: 'Led' },
   { original: 'Contributed to', pattern: /^Contributed to\b/u, replacement: 'Shipped' },
   { original: 'Tasked with', pattern: /^Tasked with\b/u, replacement: 'Owned' },
+  { original: 'Tasked to', pattern: /^Tasked to\b/u, replacement: 'Owned' },
   { original: 'Involved in', pattern: /^Involved in\b/u, replacement: 'Led' },
   { original: 'Collaborated on', pattern: /^Collaborated on\b/u, replacement: 'Built' },
   { original: 'Engaged in', pattern: /^Engaged in\b/u, replacement: 'Led' },
