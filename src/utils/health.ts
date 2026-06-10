@@ -238,6 +238,9 @@ const WEAK_VERB_PHRASES = [
   'Involved in',
   'Duties included',
   'Tasked with',
+  'Contributed to',
+  'Handled',
+  'Supported',
 ];
 
 /** First-person pronouns. `I` is case-sensitive; everything else is case-insensitive. */
@@ -260,6 +263,10 @@ const BUZZWORDS = [
   'results-driven',
   'go-getter',
   'thought leader',
+  'self-starter',
+  'self-motivated',
+  'proactive',
+  'hardworking',
 ];
 
 /** Bullets-per-role envelope. Below `min` → thin, above `max` → noisy. */
