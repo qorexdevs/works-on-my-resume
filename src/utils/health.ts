@@ -228,19 +228,32 @@ const QUANT_FLOOR: Record<CareerStage, number> = {
   senior: 0.5,
 };
 
-/** Bullet phrases that signal a passive, low-impact description. Matched case-insensitively at the start of a bullet. */
+/**
+ * Bullet phrases that signal a passive, low-impact description. Matched
+ * case-insensitively at the start of a bullet.
+ *
+ * Kept in step with `bulletPatterns`' `WEAK_VERBS` rewrite map: every opener
+ * the rewrite tray can upgrade should also be flagged here, otherwise the
+ * "Suggest a fix" affordance never appears for it.
+ */
 const WEAK_VERB_PHRASES = [
   'Responsible for',
   'Helped',
   'Worked on',
+  'Worked with',
   'Assisted',
   'Participated in',
   'Involved in',
+  'Collaborated on',
+  'Engaged in',
+  'Took part in',
   'Duties included',
+  'Responsibilities included',
   'Tasked with',
   'Contributed to',
   'Handled',
   'Supported',
+  'Aided',
 ];
 
 /** First-person pronouns. `I` is case-sensitive; everything else is case-insensitive. */
