@@ -684,6 +684,46 @@ function checkBuzzwords(markdown: string): HealthFinding[] {
 }
 
 /**
+ * #9 repeated openers. Recruiters skim the left edge of every bullet, so a
+ * column of "Led / Led / Led" reads as a thin vocabulary even when the verbs
+ * are strong. We group bullets by their opening word and, once the same word
+ * starts three or more, flag the third and later ones (using a verb twice is
+ * fine). Key-value bullets like `- label: GitHub` are skipped: their first
+ * word is a field name, not a sentence opener.
+ */
+function checkRepeatedOpeners(markdown: string): HealthFinding[] {
+  const bullets = findBullets(splitLines(markdown));
+  const groups = new Map<string, { word: string; bullets: Bullet[] }>();
+  for (const bullet of bullets) {
+    const content = bullet.content.replace(/^[*_~`]+/, '').trimStart();
+    const m = /^([A-Za-z][A-Za-z'-]*)(:?)/.exec(content);
+    if (!m || m[2] === ':') continue;
+    const key = m[1].toLowerCase();
+    const group = groups.get(key);
+    if (group) group.bullets.push(bullet);
+    else groups.set(key, { word: m[1], bullets: [bullet] });
+  }
+
+  const findings: HealthFinding[] = [];
+  for (const { word, bullets: hits } of groups.values()) {
+    if (hits.length < 3) continue;
+    // First two uses are fine; the third onward is what reads as repetitive.
+    for (const bullet of hits.slice(2)) {
+      findings.push({
+        id: 'repeated-opener',
+        severity: 'warn',
+        message: `Line ${bullet.line} also opens with '${word}' — you've used it ${hits.length} times. Vary the verb so the bullets don't blur together.`,
+        line: bullet.line,
+        offender: findOffenderInLine(bullet.text, word),
+        suggest: { kind: 'rewrite', bulletText: bullet.text },
+      });
+    }
+  }
+
+  return findings;
+}
+
+/**
  * 1-based line number where the YAML frontmatter block ends, or `0` when the
  * document has no frontmatter. Used by checks that want to ignore the
  * frontmatter block without re-running the strip regex.
@@ -1209,6 +1249,7 @@ export function analyzeResume(
   findings.push(...checkWeakVerbs(markdown));
   findings.push(...checkFirstPerson(markdown));
   findings.push(...checkBuzzwords(markdown));
+  findings.push(...checkRepeatedOpeners(markdown));
   findings.push(...checkBulletsPerRole(markdown));
 
   const score = computeScore(findings, stage);

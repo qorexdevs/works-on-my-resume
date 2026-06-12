@@ -374,6 +374,10 @@ function nextStepLabel(finding: HealthFinding, markdown: string): string {
       return role
         ? `Rebalance bullets under "${role}" — aim for 3–5`
         : `Rebalance bullets near line ${line} — aim for 3–5`;
+    case 'repeated-opener':
+      return role
+        ? `Vary the repeated opener in your ${bulletOrdinal ?? 'next'} bullet under "${role}"`
+        : `Vary the repeated opener on line ${line}`;
     case 'sections':
       return finding.message;
     default:
