@@ -285,6 +285,13 @@ const BUZZWORDS = [
 /** Bullets-per-role envelope. Below `min` → thin, above `max` → noisy. */
 const BULLETS_PER_ROLE = { min: 2, max: 6 };
 
+/**
+ * A bullet over this many words has spilled past the ~two lines a recruiter
+ * skims and reads as a paragraph. Tuned generously so only genuine run-ons
+ * trip it, not a normal outcome-and-context bullet.
+ */
+const MAX_BULLET_WORDS = 32;
+
 /* ------------------------------------------------------------------ */
 /* Small parsers — operate on raw Markdown                             */
 /* ------------------------------------------------------------------ */
@@ -720,6 +727,35 @@ function checkRepeatedOpeners(markdown: string): HealthFinding[] {
     }
   }
 
+  return findings;
+}
+
+/**
+ * #10 run-on bullets. Recruiters skim a bullet in well under a second, so one
+ * that spills past two lines stops being scannable and turns into a paragraph.
+ * Flag any bullet over `MAX_BULLET_WORDS` words. Key-value bullets
+ * (`- label: value`) are left alone — they're metadata, not prose, and a long
+ * value there is fine.
+ */
+function checkLongBullets(markdown: string): HealthFinding[] {
+  const bullets = findBullets(splitLines(markdown));
+  const findings: HealthFinding[] = [];
+  for (const bullet of bullets) {
+    const content = bullet.content.replace(/^[*_~`]+/, '').trimStart();
+    // Same `label:` carve-out as repeated openers — a field bullet isn't prose.
+    if (/^[A-Za-z][A-Za-z'-]*:/.test(content)) continue;
+    const words = content.split(/\s+/).filter(Boolean).length;
+    if (words <= MAX_BULLET_WORDS) continue;
+    findings.push({
+      id: 'long-bullet',
+      severity: 'warn',
+      message: `Line ${bullet.line} runs ${words} words. Tighten it to one or two lines so a recruiter can scan it.`,
+      line: bullet.line,
+      // No one-shot rewrite — the sample's Experience bullets model the
+      // tight, one-outcome-per-line shape to aim for.
+      suggest: { kind: 'example', section: 'Experience' },
+    });
+  }
   return findings;
 }
 
@@ -1251,6 +1287,7 @@ export function analyzeResume(
   findings.push(...checkBuzzwords(markdown));
   findings.push(...checkRepeatedOpeners(markdown));
   findings.push(...checkBulletsPerRole(markdown));
+  findings.push(...checkLongBullets(markdown));
 
   const score = computeScore(findings, stage);
   return { stage, score, findings };
