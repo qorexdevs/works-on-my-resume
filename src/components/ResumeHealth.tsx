@@ -378,6 +378,10 @@ function nextStepLabel(finding: HealthFinding, markdown: string): string {
       return role
         ? `Vary the repeated opener in your ${bulletOrdinal ?? 'next'} bullet under "${role}"`
         : `Vary the repeated opener on line ${line}`;
+    case 'long-bullet':
+      return role
+        ? `Tighten the run-on bullet in your ${bulletOrdinal ?? 'next'} bullet under "${role}"`
+        : `Tighten the run-on bullet on line ${line}`;
     case 'sections':
       return finding.message;
     default:
