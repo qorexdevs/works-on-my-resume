@@ -206,6 +206,8 @@ export function leadWithOutcome(text: string): string | null {
  * a small inline tray of 2-3 entries.
  */
 const WEAK_VERBS: { pattern: RegExp; replacement: string; original: string }[] = [
+  // "Helped lead X" before bare "Helped" so it doesn't become "Led lead X".
+  { original: 'Helped lead', pattern: /^Helped lead\b/u, replacement: 'Led' },
   // "Helped with X" before bare "Helped" so it doesn't become "Led with X".
   { original: 'Helped with', pattern: /^Helped with\b/u, replacement: 'Led' },
   // "Helped to X" before bare "Helped" too, so it doesn't become "Led to X".
@@ -235,6 +237,13 @@ const WEAK_VERBS: { pattern: RegExp; replacement: string; original: string }[] =
   { original: 'Worked with', pattern: /^Worked with\b/u, replacement: 'Partnered with' },
   { original: 'Supported', pattern: /^Supported\b/u, replacement: 'Drove' },
   { original: 'Handled', pattern: /^Handled\b/u, replacement: 'Owned' },
+  // "Was responsible for X" is the past-tense twin of "Responsible for".
+  { original: 'Was responsible for', pattern: /^Was responsible for\b/u, replacement: 'Owned' },
+  { original: 'Facilitated', pattern: /^Facilitated\b/u, replacement: 'Led' },
+  // "Provided support for X" before bare "Provided" so it doesn't become "Delivered support for X".
+  { original: 'Provided support for', pattern: /^Provided support for\b/u, replacement: 'Drove' },
+  { original: 'Provided', pattern: /^Provided\b/u, replacement: 'Delivered' },
+  { original: 'Performed', pattern: /^Performed\b/u, replacement: 'Ran' },
 ];
 
 /**
