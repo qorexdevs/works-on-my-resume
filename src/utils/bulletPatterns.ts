@@ -212,6 +212,8 @@ const WEAK_VERBS: { pattern: RegExp; replacement: string; original: string }[] =
   { original: 'Helped with', pattern: /^Helped with\b/u, replacement: 'Led' },
   // "Helped to X" before bare "Helped" too, so it doesn't become "Led to X".
   { original: 'Helped to', pattern: /^Helped to\b/u, replacement: 'Led' },
+  // "Helped in X" before bare "Helped" so it doesn't become "Led in X".
+  { original: 'Helped in', pattern: /^Helped in\b/u, replacement: 'Led' },
   // "Helped X" → "Led X" (the most common case in early-career bullets).
   { original: 'Helped', pattern: /^Helped\b/u, replacement: 'Led' },
   // "Worked on X" → "Built X" — strips the activity-phrasing and ascribes ownership.
@@ -220,7 +222,11 @@ const WEAK_VERBS: { pattern: RegExp; replacement: string; original: string }[] =
   { original: 'Responsible for', pattern: /^Responsible for\b/u, replacement: 'Owned' },
   // job-description leftovers that list duties instead of claiming them.
   { original: 'Duties included', pattern: /^Duties included\b/u, replacement: 'Owned' },
-  { original: 'Responsibilities included', pattern: /^Responsibilities included\b/u, replacement: 'Owned' },
+  {
+    original: 'Responsibilities included',
+    pattern: /^Responsibilities included\b/u,
+    replacement: 'Owned',
+  },
   { original: 'Assisted with', pattern: /^Assisted with\b/u, replacement: 'Drove' },
   { original: 'Assisted in', pattern: /^Assisted in\b/u, replacement: 'Drove' },
   { original: 'Assisted', pattern: /^Assisted\b/u, replacement: 'Drove' },
@@ -229,6 +235,13 @@ const WEAK_VERBS: { pattern: RegExp; replacement: string; original: string }[] =
   { original: 'Tasked with', pattern: /^Tasked with\b/u, replacement: 'Owned' },
   { original: 'Tasked to', pattern: /^Tasked to\b/u, replacement: 'Owned' },
   { original: 'Involved in', pattern: /^Involved in\b/u, replacement: 'Led' },
+  // "Was involved in X" is the past-tense twin of "Involved in".
+  { original: 'Was involved in', pattern: /^Was involved in\b/u, replacement: 'Led' },
+  // "Played a key role in X" before bare "Played a role in" can't shadow it
+  // (the "key" stops that match), but keep the more specific phrasing first.
+  { original: 'Played a key role in', pattern: /^Played a key role in\b/u, replacement: 'Led' },
+  { original: 'Played a role in', pattern: /^Played a role in\b/u, replacement: 'Led' },
+  { original: 'Was part of', pattern: /^Was part of\b/u, replacement: 'Led' },
   { original: 'Collaborated on', pattern: /^Collaborated on\b/u, replacement: 'Built' },
   { original: 'Engaged in', pattern: /^Engaged in\b/u, replacement: 'Led' },
   { original: 'Took part in', pattern: /^Took part in\b/u, replacement: 'Led' },
