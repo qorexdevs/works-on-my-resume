@@ -214,6 +214,10 @@ const WEAK_VERBS: { pattern: RegExp; replacement: string; original: string }[] =
   { original: 'Helped to', pattern: /^Helped to\b/u, replacement: 'Led' },
   // "Helped in X" before bare "Helped" so it doesn't become "Led in X".
   { original: 'Helped in', pattern: /^Helped in\b/u, replacement: 'Led' },
+  // "Helped out with X" / "Helped out X" before bare "Helped" so neither
+  // collapses into "Led out ...".
+  { original: 'Helped out with', pattern: /^Helped out with\b/u, replacement: 'Led' },
+  { original: 'Helped out', pattern: /^Helped out\b/u, replacement: 'Led' },
   // "Helped X" → "Led X" (the most common case in early-career bullets).
   { original: 'Helped', pattern: /^Helped\b/u, replacement: 'Led' },
   // "Worked on X" → "Built X" — strips the activity-phrasing and ascribes ownership.
@@ -234,6 +238,8 @@ const WEAK_VERBS: { pattern: RegExp; replacement: string; original: string }[] =
   { original: 'Contributed to', pattern: /^Contributed to\b/u, replacement: 'Shipped' },
   { original: 'Tasked with', pattern: /^Tasked with\b/u, replacement: 'Owned' },
   { original: 'Tasked to', pattern: /^Tasked to\b/u, replacement: 'Owned' },
+  // "Was tasked with X" is the past-tense twin of "Tasked with".
+  { original: 'Was tasked with', pattern: /^Was tasked with\b/u, replacement: 'Owned' },
   { original: 'Involved in', pattern: /^Involved in\b/u, replacement: 'Led' },
   // "Was involved in X" is the past-tense twin of "Involved in".
   { original: 'Was involved in', pattern: /^Was involved in\b/u, replacement: 'Led' },
@@ -245,6 +251,11 @@ const WEAK_VERBS: { pattern: RegExp; replacement: string; original: string }[] =
   { original: 'Collaborated on', pattern: /^Collaborated on\b/u, replacement: 'Built' },
   { original: 'Engaged in', pattern: /^Engaged in\b/u, replacement: 'Led' },
   { original: 'Took part in', pattern: /^Took part in\b/u, replacement: 'Led' },
+  // "Pitched in on X" before bare "Pitched in" so it doesn't become "Drove on X".
+  { original: 'Pitched in on', pattern: /^Pitched in on\b/u, replacement: 'Drove' },
+  { original: 'Pitched in', pattern: /^Pitched in\b/u, replacement: 'Drove' },
+  { original: 'Chipped in', pattern: /^Chipped in\b/u, replacement: 'Drove' },
+  { original: 'Stepped in to', pattern: /^Stepped in to\b/u, replacement: 'Led' },
   { original: 'Aided', pattern: /^Aided\b/u, replacement: 'Drove' },
   // "Worked with X" reads as presence, not ownership — distinct from "Worked on".
   { original: 'Worked with', pattern: /^Worked with\b/u, replacement: 'Partnered with' },
