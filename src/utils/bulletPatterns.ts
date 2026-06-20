@@ -218,6 +218,14 @@ const WEAK_VERBS: { pattern: RegExp; replacement: string; original: string }[] =
   // collapses into "Led out ...".
   { original: 'Helped out with', pattern: /^Helped out with\b/u, replacement: 'Led' },
   { original: 'Helped out', pattern: /^Helped out\b/u, replacement: 'Led' },
+  // "Helped build/develop/create/design/manage/implement X" keep the object verb
+  // instead of collapsing into bare "Helped" -> "Led build X", which reads wrong.
+  { original: 'Helped build', pattern: /^Helped build\b/u, replacement: 'Built' },
+  { original: 'Helped develop', pattern: /^Helped develop\b/u, replacement: 'Developed' },
+  { original: 'Helped create', pattern: /^Helped create\b/u, replacement: 'Created' },
+  { original: 'Helped design', pattern: /^Helped design\b/u, replacement: 'Designed' },
+  { original: 'Helped manage', pattern: /^Helped manage\b/u, replacement: 'Managed' },
+  { original: 'Helped implement', pattern: /^Helped implement\b/u, replacement: 'Implemented' },
   // "Helped X" → "Led X" (the most common case in early-career bullets).
   { original: 'Helped', pattern: /^Helped\b/u, replacement: 'Led' },
   // "Worked on X" → "Built X" — strips the activity-phrasing and ascribes ownership.
