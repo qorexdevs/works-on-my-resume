@@ -158,7 +158,7 @@ test('bullet-rewrite tray surfaces and inserts a sibling bullet above the origin
   // so Ctrl+End lands inside the bullet line rather than on an empty line
   // below it (the rewrite affordance keys off the line the caret is on).
   const textarea = page.getByLabel(/markdown source/i);
-  const initial = '## Experience\n\n### Engineer — Acme\n\n- Helped ship a new pipeline';
+  const initial = '## Experience\n\n### Engineer — Acme\n\n- Helped organize a new pipeline';
   await textarea.fill(initial);
   // On mobile the editor accordion collapses once content is present; expand
   // it so the textarea + new affordance are actually visible to interact with.
@@ -186,10 +186,10 @@ test('bullet-rewrite tray surfaces and inserts a sibling bullet above the origin
   // BOTH bullets (non-destructive), with the rewritten one above the original.
   await verbUpgrade.click();
   const after = await textarea.inputValue();
-  // The new bullet sits directly above the original "Helped ship..." line.
-  expect(after).toMatch(/- Led ship a new pipeline\n- Helped ship a new pipeline/);
+  // The new bullet sits directly above the original "Helped organize..." line.
+  expect(after).toMatch(/- Led organize a new pipeline\n- Helped organize a new pipeline/);
   // Original bullet is preserved verbatim.
-  expect(after).toContain('- Helped ship a new pipeline');
+  expect(after).toContain('- Helped organize a new pipeline');
 });
 
 test('bullet-rewrite affordance does not appear under non-Experience headings (#93)', async ({
