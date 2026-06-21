@@ -236,6 +236,11 @@ const WEAK_VERBS: { pattern: RegExp; replacement: string; original: string }[] =
   { original: 'Helped grow', pattern: /^Helped grow\b/u, replacement: 'Grew' },
   { original: 'Helped drive', pattern: /^Helped drive\b/u, replacement: 'Drove' },
   { original: 'Helped improve', pattern: /^Helped improve\b/u, replacement: 'Improved' },
+  { original: 'Helped coordinate', pattern: /^Helped coordinate\b/u, replacement: 'Coordinated' },
+  { original: 'Helped organize', pattern: /^Helped organize\b/u, replacement: 'Organized' },
+  { original: 'Helped oversee', pattern: /^Helped oversee\b/u, replacement: 'Oversaw' },
+  { original: 'Helped ensure', pattern: /^Helped ensure\b/u, replacement: 'Ensured' },
+  { original: 'Helped train', pattern: /^Helped train\b/u, replacement: 'Trained' },
   // "Helped support X" double-hedges; keep it ahead of bare "Helped" and "Supported".
   { original: 'Helped support', pattern: /^Helped support\b/u, replacement: 'Drove' },
   // "Helped X" → "Led X" (the most common case in early-career bullets).
