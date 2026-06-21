@@ -179,7 +179,7 @@ test('bullet-rewrite tray surfaces and inserts a sibling bullet above the origin
   await trigger.click();
   const tray = page.getByRole('menu', { name: /bullet rewrite suggestions/i });
   await expect(tray).toBeVisible();
-  const verbUpgrade = tray.getByRole('menuitem', { name: /verb upgrade.*helped.*led/i });
+  const verbUpgrade = tray.getByRole('menuitem', { name: /verb upgrade.*helped organize.*organized/i });
   await expect(verbUpgrade).toBeVisible();
 
   // Click the verb-upgrade candidate — the resulting document must carry
@@ -187,7 +187,7 @@ test('bullet-rewrite tray surfaces and inserts a sibling bullet above the origin
   await verbUpgrade.click();
   const after = await textarea.inputValue();
   // The new bullet sits directly above the original "Helped organize..." line.
-  expect(after).toMatch(/- Led organize a new pipeline\n- Helped organize a new pipeline/);
+  expect(after).toMatch(/- Organized a new pipeline\n- Helped organize a new pipeline/);
   // Original bullet is preserved verbatim.
   expect(after).toContain('- Helped organize a new pipeline');
 });
