@@ -226,10 +226,16 @@ const WEAK_VERBS: { pattern: RegExp; replacement: string; original: string }[] =
   { original: 'Helped design', pattern: /^Helped design\b/u, replacement: 'Designed' },
   { original: 'Helped manage', pattern: /^Helped manage\b/u, replacement: 'Managed' },
   { original: 'Helped implement', pattern: /^Helped implement\b/u, replacement: 'Implemented' },
+  // "Helped support X" double-hedges; keep it ahead of bare "Helped" and "Supported".
+  { original: 'Helped support', pattern: /^Helped support\b/u, replacement: 'Drove' },
   // "Helped X" → "Led X" (the most common case in early-career bullets).
   { original: 'Helped', pattern: /^Helped\b/u, replacement: 'Led' },
   // "Worked on X" → "Built X" — strips the activity-phrasing and ascribes ownership.
   { original: 'Worked on', pattern: /^Worked on\b/u, replacement: 'Built' },
+  // "Worked closely with" / "Worked alongside" read as presence; neither matches
+  // bare "Worked with" below, but keep them grouped with the other Worked openers.
+  { original: 'Worked closely with', pattern: /^Worked closely with\b/u, replacement: 'Partnered with' },
+  { original: 'Worked alongside', pattern: /^Worked alongside\b/u, replacement: 'Partnered with' },
   // "Responsible for X" → "Owned X" — collapses a noun-phrase opener to a verb.
   { original: 'Responsible for', pattern: /^Responsible for\b/u, replacement: 'Owned' },
   // job-description leftovers that list duties instead of claiming them.
@@ -244,6 +250,9 @@ const WEAK_VERBS: { pattern: RegExp; replacement: string; original: string }[] =
   { original: 'Assisted', pattern: /^Assisted\b/u, replacement: 'Drove' },
   { original: 'Participated in', pattern: /^Participated in\b/u, replacement: 'Led' },
   { original: 'Contributed to', pattern: /^Contributed to\b/u, replacement: 'Shipped' },
+  // "Assigned to X" / "Brought on to X" describe being placed on work, not owning it.
+  { original: 'Assigned to', pattern: /^Assigned to\b/u, replacement: 'Owned' },
+  { original: 'Brought on to', pattern: /^Brought on to\b/u, replacement: 'Led' },
   { original: 'Tasked with', pattern: /^Tasked with\b/u, replacement: 'Owned' },
   { original: 'Tasked to', pattern: /^Tasked to\b/u, replacement: 'Owned' },
   // "Was tasked with X" is the past-tense twin of "Tasked with".
