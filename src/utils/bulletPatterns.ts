@@ -241,6 +241,14 @@ const WEAK_VERBS: { pattern: RegExp; replacement: string; original: string }[] =
   { original: 'Helped oversee', pattern: /^Helped oversee\b/u, replacement: 'Oversaw' },
   { original: 'Helped ensure', pattern: /^Helped ensure\b/u, replacement: 'Ensured' },
   { original: 'Helped train', pattern: /^Helped train\b/u, replacement: 'Trained' },
+  // more object verbs that read wrong as "Led scale X" / "Led reduce X" if they
+  // collapsed into bare "Helped"; keep the object verb in past tense instead.
+  { original: 'Helped scale', pattern: /^Helped scale\b/u, replacement: 'Scaled' },
+  { original: 'Helped reduce', pattern: /^Helped reduce\b/u, replacement: 'Reduced' },
+  { original: 'Helped increase', pattern: /^Helped increase\b/u, replacement: 'Increased' },
+  { original: 'Helped automate', pattern: /^Helped automate\b/u, replacement: 'Automated' },
+  { original: 'Helped migrate', pattern: /^Helped migrate\b/u, replacement: 'Migrated' },
+  { original: 'Helped optimize', pattern: /^Helped optimize\b/u, replacement: 'Optimized' },
   // "Helped support X" double-hedges; keep it ahead of bare "Helped" and "Supported".
   { original: 'Helped support', pattern: /^Helped support\b/u, replacement: 'Drove' },
   // "Helped X" → "Led X" (the most common case in early-career bullets).
@@ -249,7 +257,11 @@ const WEAK_VERBS: { pattern: RegExp; replacement: string; original: string }[] =
   { original: 'Worked on', pattern: /^Worked on\b/u, replacement: 'Built' },
   // "Worked closely with" / "Worked alongside" read as presence; neither matches
   // bare "Worked with" below, but keep them grouped with the other Worked openers.
-  { original: 'Worked closely with', pattern: /^Worked closely with\b/u, replacement: 'Partnered with' },
+  {
+    original: 'Worked closely with',
+    pattern: /^Worked closely with\b/u,
+    replacement: 'Partnered with',
+  },
   { original: 'Worked alongside', pattern: /^Worked alongside\b/u, replacement: 'Partnered with' },
   // "Responsible for X" → "Owned X" — collapses a noun-phrase opener to a verb.
   { original: 'Responsible for', pattern: /^Responsible for\b/u, replacement: 'Owned' },
