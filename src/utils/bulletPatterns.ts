@@ -261,6 +261,19 @@ const WEAK_VERBS: { pattern: RegExp; replacement: string; original: string }[] =
   { original: 'Helped onboard', pattern: /^Helped onboard\b/u, replacement: 'Onboarded' },
   // "Helped support X" double-hedges; keep it ahead of bare "Helped" and "Supported".
   { original: 'Helped support', pattern: /^Helped support\b/u, replacement: 'Drove' },
+  // planning/writing object verbs in the same family; "Led write X" / "Led plan X"
+  // read wrong, so keep the object verb in past tense instead of bare "Helped".
+  { original: 'Helped write', pattern: /^Helped write\b/u, replacement: 'Wrote' },
+  { original: 'Helped plan', pattern: /^Helped plan\b/u, replacement: 'Planned' },
+  { original: 'Helped define', pattern: /^Helped define\b/u, replacement: 'Defined' },
+  { original: 'Helped research', pattern: /^Helped research\b/u, replacement: 'Researched' },
+  { original: 'Helped document', pattern: /^Helped document\b/u, replacement: 'Documented' },
+  { original: 'Helped analyze', pattern: /^Helped analyze\b/u, replacement: 'Analyzed' },
+  { original: 'Helped streamline', pattern: /^Helped streamline\b/u, replacement: 'Streamlined' },
+  // multi-word object verbs — keep ahead of bare "Helped" so neither collapses
+  // into "Led set up X" / "Led roll out X".
+  { original: 'Helped set up', pattern: /^Helped set up\b/u, replacement: 'Set up' },
+  { original: 'Helped roll out', pattern: /^Helped roll out\b/u, replacement: 'Rolled out' },
   // "Helped X" → "Led X" (the most common case in early-career bullets).
   { original: 'Helped', pattern: /^Helped\b/u, replacement: 'Led' },
   // "Worked on X" → "Built X" — strips the activity-phrasing and ascribes ownership.
