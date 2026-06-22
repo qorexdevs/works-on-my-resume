@@ -249,6 +249,16 @@ const WEAK_VERBS: { pattern: RegExp; replacement: string; original: string }[] =
   { original: 'Helped automate', pattern: /^Helped automate\b/u, replacement: 'Automated' },
   { original: 'Helped migrate', pattern: /^Helped migrate\b/u, replacement: 'Migrated' },
   { original: 'Helped optimize', pattern: /^Helped optimize\b/u, replacement: 'Optimized' },
+  // engineering object verbs in the same family; "Led deploy X" / "Led debug X"
+  // read wrong, so keep the object verb in past tense instead of bare "Helped".
+  { original: 'Helped deploy', pattern: /^Helped deploy\b/u, replacement: 'Deployed' },
+  { original: 'Helped integrate', pattern: /^Helped integrate\b/u, replacement: 'Integrated' },
+  { original: 'Helped refactor', pattern: /^Helped refactor\b/u, replacement: 'Refactored' },
+  { original: 'Helped debug', pattern: /^Helped debug\b/u, replacement: 'Debugged' },
+  { original: 'Helped configure', pattern: /^Helped configure\b/u, replacement: 'Configured' },
+  { original: 'Helped review', pattern: /^Helped review\b/u, replacement: 'Reviewed' },
+  // "Helped onboard X" before bare "Helped" so it doesn't become "Led onboard X".
+  { original: 'Helped onboard', pattern: /^Helped onboard\b/u, replacement: 'Onboarded' },
   // "Helped support X" double-hedges; keep it ahead of bare "Helped" and "Supported".
   { original: 'Helped support', pattern: /^Helped support\b/u, replacement: 'Drove' },
   // "Helped X" → "Led X" (the most common case in early-career bullets).
