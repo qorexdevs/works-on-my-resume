@@ -237,23 +237,45 @@ const QUANT_FLOOR: Record<CareerStage, number> = {
  * "Suggest a fix" affordance never appears for it.
  */
 const WEAK_VERB_PHRASES = [
+  // Longer phrases come before their shorter prefixes so the offender
+  // highlight lands on the full opener (e.g. "Provided support for" before
+  // "Provided", "Pitched in on" before "Pitched in").
   'Responsible for',
+  'Was responsible for',
   'Helped',
   'Worked on',
+  'Worked closely with',
+  'Worked alongside',
   'Worked with',
   'Assisted',
   'Participated in',
+  'Was involved in',
   'Involved in',
   'Collaborated on',
   'Engaged in',
   'Took part in',
   'Duties included',
   'Responsibilities included',
+  'Was tasked with',
   'Tasked with',
+  'Tasked to',
+  'Assigned to',
+  'Brought on to',
   'Contributed to',
   'Handled',
+  'Provided support for',
+  'Provided',
   'Supported',
   'Aided',
+  'Facilitated',
+  'Performed',
+  'Played a key role in',
+  'Played a role in',
+  'Was part of',
+  'Pitched in on',
+  'Pitched in',
+  'Chipped in',
+  'Stepped in to',
 ];
 
 /** First-person pronouns. `I` is case-sensitive; everything else is case-insensitive. */
