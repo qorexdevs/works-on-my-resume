@@ -877,6 +877,106 @@ function checkLongBullets(markdown: string): HealthFinding[] {
 }
 
 /**
+ * A bullet plus the source line its prose actually ends on. Markdown bullets
+ * soft-wrap across physical lines, so the period that closes a bullet often
+ * lives a line or two below the `- ` marker — `endLine` follows the lazy
+ * continuation to that final line.
+ */
+interface LogicalBullet {
+  /** 1-based line of the `- ` / `* ` marker (where the UI jumps to). */
+  line: number;
+  /** Marker-stripped content of the first physical line. */
+  firstContent: string;
+  /** Verbatim text of the last physical line the bullet spans. */
+  endLine: string;
+}
+
+/** Lines that end a bullet's lazy continuation: another bullet, heading, ordered item, table, quote. */
+const BULLET_BREAK_RE = /^[ \t]*(?:[-*][ \t]|#{1,6}[ \t]|\d+\.[ \t]|\||>)/;
+
+/**
+ * Collect every bullet under an Experience-style H2 as a `LogicalBullet`,
+ * mirroring the scoping `checkQuantification` uses. Unlike that check there's
+ * no all-bullets fallback: a draft with no Experience section yet has no
+ * settled bullet convention to enforce. Each bullet absorbs the soft-wrapped
+ * continuation lines below it so callers can read the prose's true end.
+ */
+function collectExperienceBullets(markdown: string): LogicalBullet[] {
+  const lines = splitLines(markdown);
+  const headings = findHeadings(lines);
+  const headingByLine = new Map<number, Heading>();
+  for (const h of headings) headingByLine.set(h.line, h);
+
+  let currentH2: Heading | null = null;
+  const out: LogicalBullet[] = [];
+  for (let i = 0; i < lines.length; i++) {
+    const li = lines[i];
+    const h = headingByLine.get(li.line);
+    if (h && h.level === 2) {
+      currentH2 = h;
+      continue;
+    }
+    if (h) continue;
+    if (!isExperienceLikeH2(currentH2)) continue;
+    const b = findBulletInLine(li);
+    if (!b) continue;
+    let endLine = li.text;
+    for (let j = i + 1; j < lines.length; j++) {
+      const t = lines[j].text;
+      if (t.trim() === '' || BULLET_BREAK_RE.test(t)) break;
+      endLine = t;
+    }
+    out.push({ line: b.line, firstContent: b.content, endLine });
+  }
+  return out;
+}
+
+/** True when a line's prose ends in `.`, `!`, or `?` (trailing emphasis/space ignored). */
+function endsWithSentencePunct(text: string): boolean {
+  return /[.!?]$/.test(text.replace(/[*_~`\s]+$/, ''));
+}
+
+/**
+ * #12 bullet-punctuation consistency. A resume that ends some Experience
+ * bullets with a period and leaves others bare reads as unproofed. We take the
+ * majority convention among the experience-style bullets and flag the minority
+ * that breaks it, one finding per offending bullet. The rule stays quiet unless
+ * there's a clear majority: a tie (3 with, 3 without) means no settled
+ * convention, so nothing fires. Key-value bullets (`- label: value`) and
+ * lead-in bullets ending with a colon are skipped — neither is a sentence the
+ * convention applies to.
+ */
+function checkBulletPunctuation(markdown: string): HealthFinding[] {
+  const pool = collectExperienceBullets(markdown).filter((b) => {
+    const content = b.firstContent.replace(/^[*_~`]+/, '').trimStart();
+    if (/^[A-Za-z][A-Za-z'-]*:/.test(content)) return false; // label: value
+    if (/:[ \t]*$/.test(b.endLine)) return false; // lead-in to a sub-list
+    return content.length > 0;
+  });
+  if (pool.length < 4) return [];
+
+  const withPeriod: LogicalBullet[] = [];
+  const without: LogicalBullet[] = [];
+  for (const b of pool) {
+    (endsWithSentencePunct(b.endLine) ? withPeriod : without).push(b);
+  }
+  if (withPeriod.length === 0 || without.length === 0) return [];
+  if (withPeriod.length === without.length) return [];
+
+  const majorityHasPeriod = withPeriod.length > without.length;
+  const offenders = majorityHasPeriod ? without : withPeriod;
+  return offenders.map((b) => ({
+    id: 'bullet-punctuation',
+    severity: 'warn' as const,
+    message: majorityHasPeriod
+      ? `Line ${b.line} ends without a period while most of your bullets do. Pick one and stick with it.`
+      : `Line ${b.line} ends with a period while most of your bullets don't. Pick one and stick with it.`,
+    line: b.line,
+    offender: /(\S+)\s*$/.exec(b.endLine)?.[1],
+  }));
+}
+
+/**
  * #11 leftover placeholders. Flags a line that still carries a template
  * token (`TODO`, `lorem ipsum`) or an unfilled `[...]` / `{{...}}` slot whose
  * inside names a placeholder field. Markdown links (`[label](url)`) are left
@@ -1459,6 +1559,7 @@ export function analyzeResume(
   findings.push(...checkRepeatedOpeners(markdown));
   findings.push(...checkBulletsPerRole(markdown));
   findings.push(...checkLongBullets(markdown));
+  findings.push(...checkBulletPunctuation(markdown));
   findings.push(...checkPlaceholders(markdown));
 
   const score = computeScore(findings, stage);
