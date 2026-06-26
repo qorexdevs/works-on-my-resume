@@ -388,12 +388,29 @@ function parseSkillsSection(lines: string[], start: number, end: number): JsonRe
   }
 
   // Bullet fallback (and supplements after the table) — pick up `- Skill` lines.
+  // A `- Category: a, b, c` bullet splits into a named skill with keywords,
+  // mirroring how skillsToMarkdown renders the Area/Tools columns.
   if (skills.length === 0) {
     for (let i = start; i < end; i++) {
       const trimmed = lines[i].trim();
       if (/^[-*+]\s+/.test(trimmed)) {
-        const name = stripInlineMarkdown(trimmed.replace(/^[-*+]\s+/, ''));
-        if (name) skills.push({ name });
+        const text = stripInlineMarkdown(trimmed.replace(/^[-*+]\s+/, ''));
+        if (!text) continue;
+        const colon = text.indexOf(':');
+        if (colon > 0 && colon < text.length - 1) {
+          const name = text.slice(0, colon).trim();
+          if (!name) continue;
+          const keywords = text
+            .slice(colon + 1)
+            .split(',')
+            .map((k) => k.trim())
+            .filter(Boolean);
+          const skill: JsonResumeSkill = { name };
+          if (keywords.length > 0) skill.keywords = keywords;
+          skills.push(skill);
+        } else {
+          skills.push({ name: text });
+        }
       }
     }
   }
