@@ -150,6 +150,44 @@ test('weak-verb finding fires for a bullet starting with "Responsible for"', asy
 });
 
 /* ------------------------------------------------------------------ */
+/* 4b. Leftover placeholders                                           */
+/* ------------------------------------------------------------------ */
+test('placeholder finding fires for an unfilled [Company Name] slot', async ({ page }) => {
+  const md = [
+    '---',
+    'name: Test User',
+    'role: Engineer',
+    'email: test@example.com',
+    'links:',
+    '  - GitHub: https://example.com',
+    '---',
+    '',
+    '## Summary',
+    '',
+    'Body text so the preview renders.',
+    '',
+    '## Experience',
+    '',
+    '### Engineer — [Company Name]',
+    '',
+    '- Shipped a feature that mattered.',
+    '- Built another nice thing.',
+    '',
+  ].join('\n');
+
+  await page.getByLabel(/markdown source/i).fill(md);
+  await expect(page.getByRole('article', { name: /rendered resume/i })).toBeVisible();
+  await openHealthTab(page);
+
+  const panel = healthPanel(page);
+  const finding = panel.locator('.health__list [data-rule="placeholder"]');
+  await expect(finding).toHaveCount(1);
+  await expect(finding).toHaveClass(/health__item--bad/);
+  // The placeholder sits on line 15 of the markdown above.
+  await expect(finding.getByRole('button', { name: /jump to line 15/i })).toBeVisible();
+});
+
+/* ------------------------------------------------------------------ */
 /* 5. Quantification scoping (#105)                                    */
 /* ------------------------------------------------------------------ */
 test('quantification ignores non-Experience bullets but counts Experience ones', async ({

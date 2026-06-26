@@ -326,6 +326,48 @@ const VAGUE_QUANTIFIERS = [
   'tons of',
 ];
 
+/**
+ * Literal leftover-template tokens. A resume that still carries `TODO` or
+ * `lorem ipsum` was shipped half-finished. Matched case-insensitively on a
+ * word boundary anywhere in the document, frontmatter included.
+ */
+const PLACEHOLDER_TOKENS = ['todo', 'fixme', 'tbd', 'lorem ipsum'];
+
+/**
+ * Keywords that mark a bracketed or braced span as an unfilled template slot
+ * rather than real content. `[Company Name]`, `{{ email }}` read as slots a
+ * writer forgot to fill; a Markdown link `[label](url)` does not and is
+ * excluded by the trailing-paren guard in `checkPlaceholders`.
+ */
+const PLACEHOLDER_SLOT_WORDS = [
+  'your name',
+  'full name',
+  'name here',
+  'company',
+  'company name',
+  'employer',
+  'job title',
+  'title here',
+  'role here',
+  'position',
+  'email',
+  'phone',
+  'address',
+  'city',
+  'state',
+  'location',
+  'date',
+  'dates',
+  'start date',
+  'end date',
+  'school',
+  'university',
+  'degree',
+  'gpa',
+  'website',
+  'link',
+];
+
 /** Bullets-per-role envelope. Below `min` → thin, above `max` → noisy. */
 const BULLETS_PER_ROLE = { min: 2, max: 6 };
 
@@ -831,6 +873,59 @@ function checkLongBullets(markdown: string): HealthFinding[] {
       suggest: { kind: 'example', section: 'Experience' },
     });
   }
+  return findings;
+}
+
+/**
+ * #11 leftover placeholders. Flags a line that still carries a template
+ * token (`TODO`, `lorem ipsum`) or an unfilled `[...]` / `{{...}}` slot whose
+ * inside names a placeholder field. Markdown links (`[label](url)`) are left
+ * alone via the `(?!\()` guard. One finding per offending line, `bad`
+ * severity — unlike the stylistic checks a placeholder shipped to a recruiter
+ * is a plain mistake, not a matter of taste.
+ */
+function checkPlaceholders(markdown: string): HealthFinding[] {
+  const lines = splitLines(markdown);
+  const findings: HealthFinding[] = [];
+  // Braces or non-link brackets. The `(?!\()` drops `[label](url)` links.
+  const slotRe = /\{\{[^}]+\}\}|\[[^\]]+\](?!\()/g;
+
+  for (const li of lines) {
+    let offender: string | undefined;
+
+    for (const token of PLACEHOLDER_TOKENS) {
+      const m = new RegExp(`\\b${escapeRegExp(token)}\\b`, 'i').exec(li.text);
+      if (m) {
+        offender = m[0];
+        break;
+      }
+    }
+
+    if (!offender) {
+      slotRe.lastIndex = 0;
+      let m: RegExpExecArray | null;
+      while ((m = slotRe.exec(li.text)) !== null) {
+        const inner = m[0].toLowerCase();
+        if (
+          PLACEHOLDER_SLOT_WORDS.some((w) => new RegExp(`\\b${escapeRegExp(w)}\\b`).test(inner))
+        ) {
+          offender = m[0];
+          break;
+        }
+      }
+    }
+
+    if (offender) {
+      findings.push({
+        id: 'placeholder',
+        severity: 'bad',
+        message: `Line ${li.line} still has a template placeholder ('${offender}'). Fill it in or delete it before sending.`,
+        line: li.line,
+        offender,
+      });
+    }
+  }
+
   return findings;
 }
 
@@ -1364,6 +1459,7 @@ export function analyzeResume(
   findings.push(...checkRepeatedOpeners(markdown));
   findings.push(...checkBulletsPerRole(markdown));
   findings.push(...checkLongBullets(markdown));
+  findings.push(...checkPlaceholders(markdown));
 
   const score = computeScore(findings, stage);
   return { stage, score, findings };
