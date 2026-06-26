@@ -304,6 +304,28 @@ const BUZZWORDS = [
   'hardworking',
 ];
 
+/**
+ * Vague magnitude words that gesture at scale without committing to a number.
+ * "Reduced load times" is fine; "Reduced load times for many users" pretends to
+ * quantify and says nothing. Flagged only on bullets with no digit of their own,
+ * so "cut p95 by 40% for many users" isn't nagged when the number is already
+ * there. Multi-word entries are matched as phrases.
+ */
+const VAGUE_QUANTIFIERS = [
+  'many',
+  'several',
+  'various',
+  'numerous',
+  'multiple',
+  'a lot of',
+  'lots of',
+  'a number of',
+  'a variety of',
+  'a range of',
+  'countless',
+  'tons of',
+];
+
 /** Bullets-per-role envelope. Below `min` → thin, above `max` → noisy. */
 const BULLETS_PER_ROLE = { min: 2, max: 6 };
 
@@ -710,6 +732,37 @@ function checkBuzzwords(markdown: string): HealthFinding[] {
     ];
   }
   return [];
+}
+
+/**
+ * #8 vague quantifiers. A bullet that leans on "many" or "several" to imply
+ * scale reads as a number the writer didn't have. We flag any bullet carrying
+ * one of `VAGUE_QUANTIFIERS` while holding no digit of its own, one finding per
+ * offending bullet. Key-value bullets (`- label: value`) are left alone.
+ */
+function checkVagueQuantifiers(markdown: string): HealthFinding[] {
+  const bullets = findBullets(splitLines(markdown));
+  const findings: HealthFinding[] = [];
+  for (const bullet of bullets) {
+    const content = bullet.content.replace(/^[*_~`]+/, '').trimStart();
+    if (/^[A-Za-z][A-Za-z'-]*:/.test(content)) continue;
+    if (/\d/.test(content)) continue;
+    for (const word of VAGUE_QUANTIFIERS) {
+      const re = new RegExp(`\\b${escapeRegExp(word)}\\b`, 'i');
+      const m = re.exec(content);
+      if (!m) continue;
+      findings.push({
+        id: 'vague-quantifier',
+        severity: 'warn',
+        message: `Line ${bullet.line} says '${m[0]}' instead of a number. Put the real figure in or drop the word.`,
+        line: bullet.line,
+        offender: findOffenderInLine(bullet.text, m[0]),
+        suggest: { kind: 'example', section: 'Experience' },
+      });
+      break;
+    }
+  }
+  return findings;
 }
 
 /**
@@ -1307,6 +1360,7 @@ export function analyzeResume(
   findings.push(...checkWeakVerbs(markdown));
   findings.push(...checkFirstPerson(markdown));
   findings.push(...checkBuzzwords(markdown));
+  findings.push(...checkVagueQuantifiers(markdown));
   findings.push(...checkRepeatedOpeners(markdown));
   findings.push(...checkBulletsPerRole(markdown));
   findings.push(...checkLongBullets(markdown));
