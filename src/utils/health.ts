@@ -327,6 +327,29 @@ const VAGUE_QUANTIFIERS = [
 ];
 
 /**
+ * Filler adverbs that pad a bullet without adding information. "Successfully
+ * delivered" says nothing "Delivered" doesn't — the success is implied by the
+ * outcome. "Very", "really", "highly" inflate without quantifying. Flagged as a
+ * whole word anywhere in a bullet, one finding per bullet. Distinct from
+ * `VAGUE_QUANTIFIERS` (fake scale) and `BUZZWORDS` (empty nouns): these are the
+ * adverbs that survive a delete with no loss of meaning.
+ */
+const FILLER_ADVERBS = [
+  'successfully',
+  'effectively',
+  'efficiently',
+  'very',
+  'really',
+  'highly',
+  'greatly',
+  'extremely',
+  'quite',
+  'basically',
+  'actually',
+  'simply',
+];
+
+/**
  * Literal leftover-template tokens. A resume that still carries `TODO` or
  * `lorem ipsum` was shipped half-finished. Matched case-insensitively on a
  * word boundary anywhere in the document, frontmatter included.
@@ -797,6 +820,36 @@ function checkVagueQuantifiers(markdown: string): HealthFinding[] {
         id: 'vague-quantifier',
         severity: 'warn',
         message: `Line ${bullet.line} says '${m[0]}' instead of a number. Put the real figure in or drop the word.`,
+        line: bullet.line,
+        offender: findOffenderInLine(bullet.text, m[0]),
+        suggest: { kind: 'example', section: 'Experience' },
+      });
+      break;
+    }
+  }
+  return findings;
+}
+
+/**
+ * #13 filler adverbs. A bullet leaning on "successfully", "effectively", or
+ * "very" pads itself with words a recruiter reads past. We flag any bullet
+ * carrying one of `FILLER_ADVERBS` as a whole word, one finding per offending
+ * bullet (first hit). Key-value bullets (`- label: value`) are left alone.
+ */
+function checkFillerAdverbs(markdown: string): HealthFinding[] {
+  const bullets = findBullets(splitLines(markdown));
+  const findings: HealthFinding[] = [];
+  for (const bullet of bullets) {
+    const content = bullet.content.replace(/^[*_~`]+/, '').trimStart();
+    if (/^[A-Za-z][A-Za-z'-]*:/.test(content)) continue;
+    for (const word of FILLER_ADVERBS) {
+      const re = new RegExp(`\\b${escapeRegExp(word)}\\b`, 'i');
+      const m = re.exec(content);
+      if (!m) continue;
+      findings.push({
+        id: 'filler-adverb',
+        severity: 'warn',
+        message: `Line ${bullet.line} uses the filler '${m[0]}'. Cut it — the outcome carries the weight on its own.`,
         line: bullet.line,
         offender: findOffenderInLine(bullet.text, m[0]),
         suggest: { kind: 'example', section: 'Experience' },
@@ -1556,6 +1609,7 @@ export function analyzeResume(
   findings.push(...checkFirstPerson(markdown));
   findings.push(...checkBuzzwords(markdown));
   findings.push(...checkVagueQuantifiers(markdown));
+  findings.push(...checkFillerAdverbs(markdown));
   findings.push(...checkRepeatedOpeners(markdown));
   findings.push(...checkBulletsPerRole(markdown));
   findings.push(...checkLongBullets(markdown));
