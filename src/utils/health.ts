@@ -401,6 +401,14 @@ const BULLETS_PER_ROLE = { min: 2, max: 6 };
  */
 const MAX_BULLET_WORDS = 32;
 
+/**
+ * A bullet joining this many or more achievements with "and" has stopped being
+ * one accomplishment and turned into a run of them. One or two "and"s read as a
+ * normal sentence ("designed and shipped X"); three is where the bullet should
+ * split so each outcome stands on its own line.
+ */
+const MAX_BULLET_ANDS = 3;
+
 /* ------------------------------------------------------------------ */
 /* Small parsers — operate on raw Markdown                             */
 /* ------------------------------------------------------------------ */
@@ -924,6 +932,34 @@ function checkLongBullets(markdown: string): HealthFinding[] {
       // No one-shot rewrite — the sample's Experience bullets model the
       // tight, one-outcome-per-line shape to aim for.
       suggest: { kind: 'example', section: 'Experience' },
+    });
+  }
+  return findings;
+}
+
+/**
+ * Stuffed bullets. A line that chains "designed X and built Y and shipped Z"
+ * has crammed several achievements into one bullet, so the strongest one gets
+ * buried in the middle. Distinct from `long-bullet`, which counts words — a
+ * short line can still stuff three outcomes. Flag any bullet carrying
+ * `MAX_BULLET_ANDS` or more standalone "and"s. Key-value bullets
+ * (`- label: value`) are skipped: a value listing tools with "and" is fine.
+ */
+function checkStuffedBullets(markdown: string): HealthFinding[] {
+  const bullets = findBullets(splitLines(markdown));
+  const findings: HealthFinding[] = [];
+  for (const bullet of bullets) {
+    const content = bullet.content.replace(/^[*_~`]+/, '').trimStart();
+    if (/^[A-Za-z][A-Za-z'-]*:/.test(content)) continue;
+    const ands = content.match(/\band\b/gi);
+    if (!ands || ands.length < MAX_BULLET_ANDS) continue;
+    findings.push({
+      id: 'stuffed-bullet',
+      severity: 'warn',
+      message: `Line ${bullet.line} chains ${ands.length} achievements with 'and'. Split it so each outcome gets its own bullet.`,
+      line: bullet.line,
+      offender: findOffenderInLine(bullet.text, 'and'),
+      suggest: { kind: 'rewrite', bulletText: bullet.text },
     });
   }
   return findings;
@@ -1613,6 +1649,7 @@ export function analyzeResume(
   findings.push(...checkRepeatedOpeners(markdown));
   findings.push(...checkBulletsPerRole(markdown));
   findings.push(...checkLongBullets(markdown));
+  findings.push(...checkStuffedBullets(markdown));
   findings.push(...checkBulletPunctuation(markdown));
   findings.push(...checkPlaceholders(markdown));
 
