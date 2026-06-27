@@ -350,6 +350,23 @@ const FILLER_ADVERBS = [
 ];
 
 /**
+ * Open-ended list tails. A bullet that trails off into "etc" or "and so on"
+ * waves at work it can't be bothered to name — the recruiter reads it as "ran
+ * out of concrete things to say". Pin the last item or drop the tail. Matched
+ * as a phrase anywhere in a bullet; "etc" also catches the "etc." spelling
+ * because the trailing dot sits outside the word boundary.
+ */
+const OPEN_ENDED_TAILS = [
+  'etc',
+  'and so on',
+  'and so forth',
+  'and more',
+  'and others',
+  'and the like',
+  'among others',
+];
+
+/**
  * Literal leftover-template tokens. A resume that still carries `TODO` or
  * `lorem ipsum` was shipped half-finished. Matched case-insensitively on a
  * word boundary anywhere in the document, frontmatter included.
@@ -858,6 +875,36 @@ function checkFillerAdverbs(markdown: string): HealthFinding[] {
         id: 'filler-adverb',
         severity: 'warn',
         message: `Line ${bullet.line} uses the filler '${m[0]}'. Cut it — the outcome carries the weight on its own.`,
+        line: bullet.line,
+        offender: findOffenderInLine(bullet.text, m[0]),
+        suggest: { kind: 'example', section: 'Experience' },
+      });
+      break;
+    }
+  }
+  return findings;
+}
+
+/**
+ * Open-ended list tails. A bullet ending in "etc" or "and so on" gestures at
+ * work it never names. We flag any bullet carrying one of `OPEN_ENDED_TAILS` as
+ * a phrase, one finding per bullet (first hit). Key-value bullets
+ * (`- label: value`) are left alone like the other phrase checks.
+ */
+function checkOpenEndedLists(markdown: string): HealthFinding[] {
+  const bullets = findBullets(splitLines(markdown));
+  const findings: HealthFinding[] = [];
+  for (const bullet of bullets) {
+    const content = bullet.content.replace(/^[*_~`]+/, '').trimStart();
+    if (/^[A-Za-z][A-Za-z'-]*:/.test(content)) continue;
+    for (const tail of OPEN_ENDED_TAILS) {
+      const re = new RegExp(`\\b${escapeRegExp(tail)}\\b`, 'i');
+      const m = re.exec(content);
+      if (!m) continue;
+      findings.push({
+        id: 'open-ended-list',
+        severity: 'warn',
+        message: `Line ${bullet.line} trails off with '${m[0]}'. Name the last item or cut it — a vague tail adds nothing.`,
         line: bullet.line,
         offender: findOffenderInLine(bullet.text, m[0]),
         suggest: { kind: 'example', section: 'Experience' },
@@ -1646,6 +1693,7 @@ export function analyzeResume(
   findings.push(...checkBuzzwords(markdown));
   findings.push(...checkVagueQuantifiers(markdown));
   findings.push(...checkFillerAdverbs(markdown));
+  findings.push(...checkOpenEndedLists(markdown));
   findings.push(...checkRepeatedOpeners(markdown));
   findings.push(...checkBulletsPerRole(markdown));
   findings.push(...checkLongBullets(markdown));
