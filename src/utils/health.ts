@@ -916,6 +916,34 @@ function checkOpenEndedLists(markdown: string): HealthFinding[] {
 }
 
 /**
+ * "References available upon request" and its kin. The line is a relic — every
+ * employer assumes you'll hand over references when asked, so it spends a line
+ * saying nothing. Flag the first occurrence in the body. We scope the match to
+ * `references` + a "you'll get them later" verb so a real References section
+ * that actually lists people doesn't trip it. One finding, no rewrite — the
+ * fix is to delete the line.
+ */
+function checkReferencesLine(markdown: string): HealthFinding[] {
+  const fmEnd = frontmatterEndLine(markdown);
+  const re = /\breferences\b[^.\n]*?\b(available|furnished|provided|supplied)\b/i;
+  for (const li of splitLines(markdown)) {
+    if (li.line <= fmEnd) continue;
+    const m = re.exec(li.text);
+    if (!m) continue;
+    return [
+      {
+        id: 'references-line',
+        severity: 'warn',
+        message: `Line ${li.line} says references are available on request. Drop it — it's assumed, and the line is better spent on your work.`,
+        line: li.line,
+        offender: findOffenderInLine(li.text, m[0]),
+      },
+    ];
+  }
+  return [];
+}
+
+/**
  * #9 repeated openers. Recruiters skim the left edge of every bullet, so a
  * column of "Led / Led / Led" reads as a thin vocabulary even when the verbs
  * are strong. We group bullets by their opening word and, once the same word
@@ -1694,6 +1722,7 @@ export function analyzeResume(
   findings.push(...checkVagueQuantifiers(markdown));
   findings.push(...checkFillerAdverbs(markdown));
   findings.push(...checkOpenEndedLists(markdown));
+  findings.push(...checkReferencesLine(markdown));
   findings.push(...checkRepeatedOpeners(markdown));
   findings.push(...checkBulletsPerRole(markdown));
   findings.push(...checkLongBullets(markdown));
