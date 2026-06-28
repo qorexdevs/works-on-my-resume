@@ -188,6 +188,46 @@ test('placeholder finding fires for an unfilled [Company Name] slot', async ({ p
 });
 
 /* ------------------------------------------------------------------ */
+/* 4c. References-available-on-request line                            */
+/* ------------------------------------------------------------------ */
+test('references-line finding fires for "References available upon request"', async ({ page }) => {
+  const md = [
+    '---',
+    'name: Test User',
+    'role: Engineer',
+    'email: test@example.com',
+    'links:',
+    '  - GitHub: https://example.com',
+    '---',
+    '',
+    '## Summary',
+    '',
+    'Body text so the preview renders.',
+    '',
+    '## Experience',
+    '',
+    '### Engineer — Acme',
+    '',
+    '- Shipped a feature that mattered.',
+    '',
+    '## References',
+    '',
+    'References available upon request',
+    '',
+  ].join('\n');
+
+  await page.getByLabel(/markdown source/i).fill(md);
+  await expect(page.getByRole('article', { name: /rendered resume/i })).toBeVisible();
+  await openHealthTab(page);
+
+  const panel = healthPanel(page);
+  const finding = panel.locator('.health__list [data-rule="references-line"]');
+  await expect(finding).toHaveCount(1);
+  // The references line sits on line 21 of the markdown above.
+  await expect(finding.getByRole('button', { name: /jump to line 21/i })).toBeVisible();
+});
+
+/* ------------------------------------------------------------------ */
 /* 5. Quantification scoping (#105)                                    */
 /* ------------------------------------------------------------------ */
 test('quantification ignores non-Experience bullets but counts Experience ones', async ({
