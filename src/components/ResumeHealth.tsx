@@ -366,6 +366,10 @@ function nextStepLabel(finding: HealthFinding, markdown: string): string {
       return role
         ? `Replace the weak opener in your ${bulletOrdinal ?? 'next'} bullet under "${role}"`
         : `Replace the weak opener on line ${line}`;
+    case 'passive-voice':
+      return role
+        ? `Rewrite the passive bullet in your ${bulletOrdinal ?? 'next'} bullet under "${role}" in active voice`
+        : `Rewrite the passive bullet on line ${line} in active voice`;
     case 'first-person':
       return `Rewrite the first-person bullet on line ${line} in implied first person`;
     case 'buzzwords':

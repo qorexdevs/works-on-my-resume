@@ -934,6 +934,41 @@ function checkOpenEndedLists(markdown: string): HealthFinding[] {
 }
 
 /**
+ * Passive voice in bullets. "Sales were increased 20%" hides who did the work;
+ * recruiters want the active "Increased sales 20%". We look for a `was`/`were`
+ * auxiliary followed by an -ed participle anywhere in the bullet. Bullets that
+ * already open with a weak-verb phrase (`Was tasked with`, `Was responsible
+ * for`) are left to checkWeakVerbs so one line isn't flagged twice. One finding
+ * per offending bullet.
+ */
+function checkPassiveVoice(markdown: string): HealthFinding[] {
+  const lines = splitLines(markdown);
+  const bullets = findBullets(lines);
+  const findings: HealthFinding[] = [];
+  // {2,} before "ed" keeps short adjectives like "red" from reading as participles.
+  const re = /\b(was|were)\s+[a-z]{2,}ed\b/i;
+
+  for (const bullet of bullets) {
+    const content = bullet.content.replace(/^[*_~`]+/, '').trimStart();
+    const ownedByWeakVerb = WEAK_VERB_PHRASES.some((phrase) =>
+      new RegExp(`^${escapeRegExp(phrase)}\\b`, 'i').test(content),
+    );
+    if (ownedByWeakVerb) continue;
+    const m = re.exec(bullet.content);
+    if (!m) continue;
+    findings.push({
+      id: 'passive-voice',
+      severity: 'warn',
+      message: `Line ${bullet.line} uses passive voice ('${m[0]}') — rewrite it active, like 'Increased sales 20%', so the win is clearly yours.`,
+      line: bullet.line,
+      offender: findOffenderInLine(bullet.text, m[0]),
+      suggest: { kind: 'rewrite', bulletText: bullet.text },
+    });
+  }
+  return findings;
+}
+
+/**
  * "References available upon request" and its kin. The line is a relic — every
  * employer assumes you'll hand over references when asked, so it spends a line
  * saying nothing. Flag the first occurrence in the body. We scope the match to
@@ -1768,6 +1803,7 @@ export function analyzeResume(
   findings.push(...checkSections(markdown, stage));
   findings.push(...checkQuantification(markdown, stage));
   findings.push(...checkWeakVerbs(markdown));
+  findings.push(...checkPassiveVoice(markdown));
   findings.push(...checkFirstPerson(markdown));
   findings.push(...checkBuzzwords(markdown));
   findings.push(...checkVagueQuantifiers(markdown));
