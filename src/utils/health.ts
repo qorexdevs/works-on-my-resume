@@ -327,6 +327,24 @@ const VAGUE_QUANTIFIERS = [
 ];
 
 /**
+ * Objective-statement openers. A line that leads with what the candidate WANTS
+ * ("Seeking a challenging role to apply my skills") spends the most-read lines
+ * on the job hunt instead of the work. Modern resumes open with evidence, not
+ * an objective. Matched only when one of these starts a body line (after the
+ * bullet / emphasis markers), so a bullet like "Shipped a refund flow for users
+ * seeking a faster path" — where the phrase sits mid-sentence — is left alone.
+ */
+const OBJECTIVE_OPENERS = [
+  'seeking',
+  'looking for',
+  'in search of',
+  'to obtain',
+  'aspiring',
+  'eager to',
+  'desire to',
+];
+
+/**
  * Filler adverbs that pad a bullet without adding information. "Successfully
  * delivered" says nothing "Delivered" doesn't — the success is implied by the
  * outcome. "Very", "really", "highly" inflate without quantifying. Flagged as a
@@ -937,6 +955,39 @@ function checkReferencesLine(markdown: string): HealthFinding[] {
         message: `Line ${li.line} says references are available on request. Drop it — it's assumed, and the line is better spent on your work.`,
         line: li.line,
         offender: findOffenderInLine(li.text, m[0]),
+      },
+    ];
+  }
+  return [];
+}
+
+/**
+ * Objective statement. A body line that opens with what the writer wants from
+ * the job ("Seeking...", "Looking for...") instead of what they bring. Scoped
+ * to the line opener so the phrase mid-bullet doesn't trip it. First match only
+ * — point at the Summary sample, which leads with evidence rather than an ask.
+ */
+function checkObjectiveStatement(markdown: string): HealthFinding[] {
+  const fmEnd = frontmatterEndLine(markdown);
+  const opener = new RegExp(
+    `^(?:${OBJECTIVE_OPENERS.map(escapeRegExp).join('|')})\\b`,
+    'i',
+  );
+  for (const li of splitLines(markdown)) {
+    if (li.line <= fmEnd) continue;
+    // Strip a leading bullet marker and any emphasis so the opener is tested
+    // against the first real word of the sentence.
+    const head = li.text.replace(/^\s*(?:[-*+]\s+)?[*_~`]*/, '');
+    const m = opener.exec(head);
+    if (!m) continue;
+    return [
+      {
+        id: 'objective-statement',
+        severity: 'warn',
+        message: `Line ${li.line} opens with '${m[0]}' — that reads as an objective. Lead with what you've shipped, not what you're after.`,
+        line: li.line,
+        offender: findOffenderInLine(li.text, m[0]),
+        suggest: { kind: 'example', section: 'Summary' },
       },
     ];
   }
@@ -1723,6 +1774,7 @@ export function analyzeResume(
   findings.push(...checkFillerAdverbs(markdown));
   findings.push(...checkOpenEndedLists(markdown));
   findings.push(...checkReferencesLine(markdown));
+  findings.push(...checkObjectiveStatement(markdown));
   findings.push(...checkRepeatedOpeners(markdown));
   findings.push(...checkBulletsPerRole(markdown));
   findings.push(...checkLongBullets(markdown));
