@@ -260,6 +260,39 @@ test('objective-statement finding fires for a "Seeking..." summary opener', asyn
   await expect(finding.getByRole('button', { name: /jump to line 11/i })).toBeVisible();
 });
 
+test('passive-voice finding fires for a "were increased" bullet', async ({ page }) => {
+  const md = [
+    '---',
+    'name: Test User',
+    'role: Engineer',
+    'email: test@example.com',
+    'links:',
+    '  - GitHub: https://example.com',
+    '---',
+    '',
+    '## Summary',
+    '',
+    'Body text so the preview renders.',
+    '',
+    '## Experience',
+    '',
+    '### Engineer — Acme',
+    '',
+    '- Sales were increased 20% across the quarter.',
+    '',
+  ].join('\n');
+
+  await page.getByLabel(/markdown source/i).fill(md);
+  await expect(page.getByRole('article', { name: /rendered resume/i })).toBeVisible();
+  await openHealthTab(page);
+
+  const panel = healthPanel(page);
+  const finding = panel.locator('.health__list [data-rule="passive-voice"]');
+  await expect(finding).toHaveCount(1);
+  // The passive bullet sits on line 17 of the markdown above.
+  await expect(finding.getByRole('button', { name: /jump to line 17/i })).toBeVisible();
+});
+
 /* ------------------------------------------------------------------ */
 /* 5. Quantification scoping (#105)                                    */
 /* ------------------------------------------------------------------ */
