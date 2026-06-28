@@ -227,6 +227,39 @@ test('references-line finding fires for "References available upon request"', as
   await expect(finding.getByRole('button', { name: /jump to line 21/i })).toBeVisible();
 });
 
+test('objective-statement finding fires for a "Seeking..." summary opener', async ({ page }) => {
+  const md = [
+    '---',
+    'name: Test User',
+    'role: Engineer',
+    'email: test@example.com',
+    'links:',
+    '  - GitHub: https://example.com',
+    '---',
+    '',
+    '## Summary',
+    '',
+    'Seeking a challenging role to apply my backend skills.',
+    '',
+    '## Experience',
+    '',
+    '### Engineer — Acme',
+    '',
+    '- Shipped a feature that mattered.',
+    '',
+  ].join('\n');
+
+  await page.getByLabel(/markdown source/i).fill(md);
+  await expect(page.getByRole('article', { name: /rendered resume/i })).toBeVisible();
+  await openHealthTab(page);
+
+  const panel = healthPanel(page);
+  const finding = panel.locator('.health__list [data-rule="objective-statement"]');
+  await expect(finding).toHaveCount(1);
+  // The "Seeking..." line sits on line 11 of the markdown above.
+  await expect(finding.getByRole('button', { name: /jump to line 11/i })).toBeVisible();
+});
+
 /* ------------------------------------------------------------------ */
 /* 5. Quantification scoping (#105)                                    */
 /* ------------------------------------------------------------------ */
