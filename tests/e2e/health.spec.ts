@@ -326,6 +326,35 @@ test('personal-details finding fires for a "Marital status:" line', async ({ pag
   await expect(finding.getByRole('button', { name: /jump to line 11/i })).toBeVisible();
 });
 
+test('exclamation finding fires for a bullet ending with "!"', async ({ page }) => {
+  const md = [
+    '---',
+    'name: Test User',
+    'role: Engineer',
+    'email: test@example.com',
+    'links:',
+    '  - GitHub: https://example.com',
+    '---',
+    '',
+    '## Experience',
+    '',
+    '### Engineer — Acme',
+    '',
+    '- Shipped the launch on time!',
+    '',
+  ].join('\n');
+
+  await page.getByLabel(/markdown source/i).fill(md);
+  await expect(page.getByRole('article', { name: /rendered resume/i })).toBeVisible();
+  await openHealthTab(page);
+
+  const panel = healthPanel(page);
+  const finding = panel.locator('.health__list [data-rule="exclamation"]');
+  await expect(finding).toHaveCount(1);
+  // The "Shipped the launch on time!" bullet sits on line 13 of the markdown above.
+  await expect(finding.getByRole('button', { name: /jump to line 13/i })).toBeVisible();
+});
+
 /* ------------------------------------------------------------------ */
 /* 5. Quantification scoping (#105)                                    */
 /* ------------------------------------------------------------------ */
