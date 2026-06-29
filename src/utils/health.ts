@@ -950,6 +950,33 @@ function checkOpenEndedLists(markdown: string): HealthFinding[] {
 }
 
 /**
+ * Exclamation marks in bullets. "Shipped the launch on time!" reads as
+ * over-eager — a resume stays flat and lets the result carry the weight. We
+ * flag any bullet carrying a `!`, one finding per bullet (first hit).
+ * Key-value bullets (`- label: value`) are left alone like the other phrase
+ * checks.
+ */
+function checkExclamation(markdown: string): HealthFinding[] {
+  const bullets = findBullets(splitLines(markdown));
+  const findings: HealthFinding[] = [];
+  for (const bullet of bullets) {
+    const content = bullet.content.replace(/^[*_~`]+/, '').trimStart();
+    if (/^[A-Za-z][A-Za-z'-]*:/.test(content)) continue;
+    const m = /\S*!/.exec(content);
+    if (!m) continue;
+    findings.push({
+      id: 'exclamation',
+      severity: 'warn',
+      message: `Line ${bullet.line} ends a point with '!'. Drop it — a resume stays flat and lets the result speak.`,
+      line: bullet.line,
+      offender: findOffenderInLine(bullet.text, m[0]),
+      suggest: { kind: 'example', section: 'Experience' },
+    });
+  }
+  return findings;
+}
+
+/**
  * Passive voice in bullets. "Sales were increased 20%" hides who did the work;
  * recruiters want the active "Increased sales 20%". We look for a `was`/`were`
  * auxiliary followed by an -ed participle anywhere in the bullet. Bullets that
@@ -1853,6 +1880,7 @@ export function analyzeResume(
   findings.push(...checkVagueQuantifiers(markdown));
   findings.push(...checkFillerAdverbs(markdown));
   findings.push(...checkOpenEndedLists(markdown));
+  findings.push(...checkExclamation(markdown));
   findings.push(...checkReferencesLine(markdown));
   findings.push(...checkObjectiveStatement(markdown));
   findings.push(...checkPersonalDetails(markdown));
