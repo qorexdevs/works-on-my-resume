@@ -1298,6 +1298,33 @@ function checkBulletPunctuation(markdown: string): HealthFinding[] {
 }
 
 /**
+ * #13 bullet-capitalization consistency. An Experience bullet that opens with a
+ * lowercase word reads as a typo next to its capitalized neighbours. We strip
+ * the marker and any emphasis, take the first word, and flag a bullet whose
+ * first letter is lowercase, one finding per offender. Bullets that open with a
+ * digit or symbol (`5x faster`, `+30% revenue`) have no case to get wrong and
+ * are skipped, as are `label: value` bullets.
+ */
+function checkBulletCapitalization(markdown: string): HealthFinding[] {
+  const findings: HealthFinding[] = [];
+  for (const b of collectExperienceBullets(markdown)) {
+    const content = b.firstContent.replace(/^[*_~`]+/, '').trimStart();
+    if (!content) continue;
+    if (/^[A-Za-z][A-Za-z'-]*:/.test(content)) continue; // label: value
+    const first = content[0];
+    if (first < 'a' || first > 'z') continue; // only flag a lowercase letter
+    findings.push({
+      id: 'bullet-capitalization',
+      severity: 'warn',
+      message: `Line ${b.line} starts a bullet with a lowercase word ('${/^\S+/.exec(content)?.[0]}'). Capitalize the first word so it matches the rest.`,
+      line: b.line,
+      offender: /^\S+/.exec(content)?.[0],
+    });
+  }
+  return findings;
+}
+
+/**
  * #11 leftover placeholders. Flags a line that still carries a template
  * token (`TODO`, `lorem ipsum`) or an unfilled `[...]` / `{{...}}` slot whose
  * inside names a placeholder field. Markdown links (`[label](url)`) are left
@@ -1889,6 +1916,7 @@ export function analyzeResume(
   findings.push(...checkLongBullets(markdown));
   findings.push(...checkStuffedBullets(markdown));
   findings.push(...checkBulletPunctuation(markdown));
+  findings.push(...checkBulletCapitalization(markdown));
   findings.push(...checkPlaceholders(markdown));
 
   const score = computeScore(findings, stage);
