@@ -355,6 +355,37 @@ test('exclamation finding fires for a bullet ending with "!"', async ({ page }) 
   await expect(finding.getByRole('button', { name: /jump to line 13/i })).toBeVisible();
 });
 
+test('bullet-capitalization finding fires for a lowercase bullet opener', async ({ page }) => {
+  const md = [
+    '---',
+    'name: Test User',
+    'role: Engineer',
+    'email: test@example.com',
+    'links:',
+    '  - GitHub: https://example.com',
+    '---',
+    '',
+    '## Experience',
+    '',
+    '### Engineer — Acme',
+    '',
+    '- Built the billing pipeline end to end.',
+    '- Cut deploy time from 30m to 4m.',
+    '- shipped the launch on time.',
+    '',
+  ].join('\n');
+
+  await page.getByLabel(/markdown source/i).fill(md);
+  await expect(page.getByRole('article', { name: /rendered resume/i })).toBeVisible();
+  await openHealthTab(page);
+
+  const panel = healthPanel(page);
+  const finding = panel.locator('.health__list [data-rule="bullet-capitalization"]');
+  await expect(finding).toHaveCount(1);
+  // Only the "shipped" bullet on line 15 opens lowercase; the two above it don't.
+  await expect(finding.getByRole('button', { name: /jump to line 15/i })).toBeVisible();
+});
+
 /* ------------------------------------------------------------------ */
 /* 5. Quantification scoping (#105)                                    */
 /* ------------------------------------------------------------------ */
