@@ -293,6 +293,39 @@ test('passive-voice finding fires for a "were increased" bullet', async ({ page 
   await expect(finding.getByRole('button', { name: /jump to line 17/i })).toBeVisible();
 });
 
+test('personal-details finding fires for a "Marital status:" line', async ({ page }) => {
+  const md = [
+    '---',
+    'name: Test User',
+    'role: Engineer',
+    'email: test@example.com',
+    'links:',
+    '  - GitHub: https://example.com',
+    '---',
+    '',
+    '## Summary',
+    '',
+    'Marital status: single. Senior backend engineer.',
+    '',
+    '## Experience',
+    '',
+    '### Engineer — Acme',
+    '',
+    '- Shipped a feature that mattered.',
+    '',
+  ].join('\n');
+
+  await page.getByLabel(/markdown source/i).fill(md);
+  await expect(page.getByRole('article', { name: /rendered resume/i })).toBeVisible();
+  await openHealthTab(page);
+
+  const panel = healthPanel(page);
+  const finding = panel.locator('.health__list [data-rule="personal-details"]');
+  await expect(finding).toHaveCount(1);
+  // The "Marital status:" line sits on line 11 of the markdown above.
+  await expect(finding.getByRole('button', { name: /jump to line 11/i })).toBeVisible();
+});
+
 /* ------------------------------------------------------------------ */
 /* 5. Quantification scoping (#105)                                    */
 /* ------------------------------------------------------------------ */
