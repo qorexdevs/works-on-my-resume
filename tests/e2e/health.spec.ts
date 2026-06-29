@@ -420,6 +420,49 @@ test('duplicate-bullet finding fires for a repeated experience bullet', async ({
   await expect(finding.getByRole('button', { name: /jump to line 18/i })).toBeVisible();
 });
 
+test('date-format finding fires for a role that breaks the majority style', async ({ page }) => {
+  const md = [
+    '---',
+    'name: Test User',
+    'role: Engineer',
+    'email: test@example.com',
+    'links:',
+    '  - GitHub: https://example.com',
+    '---',
+    '',
+    '## Experience',
+    '',
+    '### Senior Engineer — Acme',
+    '',
+    '_Mar 2021 – Present_',
+    '',
+    '- Built the billing pipeline end to end.',
+    '',
+    '### Engineer — Globex',
+    '',
+    '_Jun 2018 – Feb 2021_',
+    '',
+    '- Cut deploy time from 30m to 4m.',
+    '',
+    '### Engineer — Initech',
+    '',
+    '_06/2016 – 05/2018_',
+    '',
+    '- Shipped the launch on schedule.',
+    '',
+  ].join('\n');
+
+  await page.getByLabel(/markdown source/i).fill(md);
+  await expect(page.getByRole('article', { name: /rendered resume/i })).toBeVisible();
+  await openHealthTab(page);
+
+  const panel = healthPanel(page);
+  const finding = panel.locator('.health__list [data-rule="date-format"]');
+  await expect(finding).toHaveCount(1);
+  // Two roles use the "Mar 2021" style; the numeric "06/2016" line 25 is the odd one.
+  await expect(finding.getByRole('button', { name: /jump to line 25/i })).toBeVisible();
+});
+
 /* ------------------------------------------------------------------ */
 /* 5. Quantification scoping (#105)                                    */
 /* ------------------------------------------------------------------ */
