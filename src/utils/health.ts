@@ -345,6 +345,22 @@ const OBJECTIVE_OPENERS = [
 ];
 
 /**
+ * Personal details a modern resume should not carry: date of birth, marital
+ * status, nationality, gender, religion. In most markets they invite bias and
+ * never help the hiring case, so they only waste a line. Matched as a labeled
+ * field ("label:") so the words used naturally inside a bullet don't trip it.
+ */
+const PERSONAL_DETAIL_LABELS = [
+  'date of birth',
+  'd\\.?o\\.?b\\.?',
+  'place of birth',
+  'marital status',
+  'nationality',
+  'gender',
+  'religion',
+];
+
+/**
  * Filler adverbs that pad a bullet without adding information. "Successfully
  * delivered" says nothing "Delivered" doesn't — the success is implied by the
  * outcome. "Very", "really", "highly" inflate without quantifying. Flagged as a
@@ -1027,6 +1043,34 @@ function checkObjectiveStatement(markdown: string): HealthFinding[] {
     ];
   }
   return [];
+}
+
+/**
+ * Personal details (date of birth, marital status, nationality, gender,
+ * religion). Matched as a labeled field — the label followed by a colon — so
+ * the same words used inside a normal bullet are left alone. One finding per
+ * line, no rewrite: the fix is to delete it.
+ */
+function checkPersonalDetails(markdown: string): HealthFinding[] {
+  const fmEnd = frontmatterEndLine(markdown);
+  const re = new RegExp(
+    `\\b(${PERSONAL_DETAIL_LABELS.join('|')})\\b[*_~\`]*\\s*:`,
+    'i',
+  );
+  const findings: HealthFinding[] = [];
+  for (const li of splitLines(markdown)) {
+    if (li.line <= fmEnd) continue;
+    const m = re.exec(li.text);
+    if (!m) continue;
+    findings.push({
+      id: 'personal-details',
+      severity: 'warn',
+      message: `Line ${li.line} lists a personal detail ('${m[1]}'). Drop it — it invites bias and doesn't help your case, so the line is better spent on your work.`,
+      line: li.line,
+      offender: findOffenderInLine(li.text, m[0]),
+    });
+  }
+  return findings;
 }
 
 /**
@@ -1811,6 +1855,7 @@ export function analyzeResume(
   findings.push(...checkOpenEndedLists(markdown));
   findings.push(...checkReferencesLine(markdown));
   findings.push(...checkObjectiveStatement(markdown));
+  findings.push(...checkPersonalDetails(markdown));
   findings.push(...checkRepeatedOpeners(markdown));
   findings.push(...checkBulletsPerRole(markdown));
   findings.push(...checkLongBullets(markdown));
