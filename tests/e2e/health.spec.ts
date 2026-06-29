@@ -386,6 +386,40 @@ test('bullet-capitalization finding fires for a lowercase bullet opener', async 
   await expect(finding.getByRole('button', { name: /jump to line 15/i })).toBeVisible();
 });
 
+test('duplicate-bullet finding fires for a repeated experience bullet', async ({ page }) => {
+  const md = [
+    '---',
+    'name: Test User',
+    'role: Engineer',
+    'email: test@example.com',
+    'links:',
+    '  - GitHub: https://example.com',
+    '---',
+    '',
+    '## Experience',
+    '',
+    '### Engineer — Acme',
+    '',
+    '- Cut the deploy time from thirty minutes to four.',
+    '- Owned the billing service end to end.',
+    '',
+    '### Engineer — Globex',
+    '',
+    '- Cut the deploy time from thirty minutes to four.',
+    '',
+  ].join('\n');
+
+  await page.getByLabel(/markdown source/i).fill(md);
+  await expect(page.getByRole('article', { name: /rendered resume/i })).toBeVisible();
+  await openHealthTab(page);
+
+  const panel = healthPanel(page);
+  const finding = panel.locator('.health__list [data-rule="duplicate-bullet"]');
+  await expect(finding).toHaveCount(1);
+  // The repeat sits on line 18; it points back at the first copy on line 13.
+  await expect(finding.getByRole('button', { name: /jump to line 18/i })).toBeVisible();
+});
+
 /* ------------------------------------------------------------------ */
 /* 5. Quantification scoping (#105)                                    */
 /* ------------------------------------------------------------------ */
