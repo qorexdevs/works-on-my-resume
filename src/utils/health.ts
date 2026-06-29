@@ -1325,6 +1325,40 @@ function checkBulletCapitalization(markdown: string): HealthFinding[] {
 }
 
 /**
+ * #14 duplicate bullets. Copy-pasting a bullet from one role to the next and
+ * forgetting to edit it leaves the same achievement twice — a tell that the
+ * resume was rushed. We normalize each Experience bullet (drop the marker and
+ * emphasis, lowercase, strip punctuation, collapse whitespace) and flag a later
+ * bullet whose normalized text matches an earlier one, pointing back at the
+ * first occurrence. Very short bullets are skipped: a bare `Python` or `Led the
+ * team` repeats legitimately and would only add noise.
+ */
+function checkDuplicateBullets(markdown: string): HealthFinding[] {
+  const findings: HealthFinding[] = [];
+  const seen = new Map<string, number>();
+  for (const b of collectExperienceBullets(markdown)) {
+    const norm = b.firstContent
+      .replace(/^[*_~`]+/, '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, ' ')
+      .trim();
+    if (norm.length < 15) continue;
+    const first = seen.get(norm);
+    if (first === undefined) {
+      seen.set(norm, b.line);
+      continue;
+    }
+    findings.push({
+      id: 'duplicate-bullet',
+      severity: 'warn',
+      message: `Line ${b.line} repeats the bullet from line ${first} almost word for word. Drop one or rewrite it for this role.`,
+      line: b.line,
+    });
+  }
+  return findings;
+}
+
+/**
  * #11 leftover placeholders. Flags a line that still carries a template
  * token (`TODO`, `lorem ipsum`) or an unfilled `[...]` / `{{...}}` slot whose
  * inside names a placeholder field. Markdown links (`[label](url)`) are left
@@ -1917,6 +1951,7 @@ export function analyzeResume(
   findings.push(...checkStuffedBullets(markdown));
   findings.push(...checkBulletPunctuation(markdown));
   findings.push(...checkBulletCapitalization(markdown));
+  findings.push(...checkDuplicateBullets(markdown));
   findings.push(...checkPlaceholders(markdown));
 
   const score = computeScore(findings, stage);
