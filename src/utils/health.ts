@@ -1358,6 +1358,108 @@ function checkDuplicateBullets(markdown: string): HealthFinding[] {
   return findings;
 }
 
+/** The leading date token of an Experience role line, with its format kind. */
+interface RoleDate {
+  line: number;
+  token: string;
+  kind: string;
+}
+
+// Ordered longest-first so `Mar 5, 2021` wins over `Mar 2021` and `03/05/2021`
+// over `03/2021` when both could match the line's head.
+const DATE_START_RE =
+  /^([A-Z][a-z]{2,8}\.?\s+\d{1,2},\s*\d{4}|[A-Z][a-z]{2,8}\.?\s+\d{4}|\d{1,2}\/\d{1,2}\/\d{2,4}|\d{1,2}\/\d{4}|\d{4})\b/;
+
+/** Classify a date token into a coarse format bucket, or null when unknown. */
+function dateFormatKind(token: string): string | null {
+  if (/^\d{1,2}\/\d{1,2}\/\d{2,4}$/.test(token)) return 'numeric-day';
+  if (/^\d{1,2}\/\d{4}$/.test(token)) return 'numeric';
+  if (/^[A-Z][a-z]{2,8}\.?\s+\d{1,2},\s*\d{4}$/.test(token)) return 'month-day-year';
+  if (/^[A-Z][a-z]{2,8}\.?\s+\d{4}$/.test(token)) return 'month-year';
+  if (/^\d{4}$/.test(token)) return 'year';
+  return null;
+}
+
+/**
+ * Collect the start-date of each role line inside an Experience-flavored H2.
+ * A role date line leads with a date token (after stripping italic/quote
+ * markers) and continues into a range — a dash, `to`, or a `Present`/`Current`
+ * end. Education years are excluded by the section guard so a `2012 – 2016`
+ * degree line doesn't read as a conflicting format next to dated jobs.
+ */
+function collectRoleDates(markdown: string): RoleDate[] {
+  const lines = splitLines(markdown);
+  const headingByLine = new Map<number, Heading>();
+  for (const h of findHeadings(lines)) headingByLine.set(h.line, h);
+
+  const out: RoleDate[] = [];
+  let inExperience = false;
+  for (const li of lines) {
+    const h = headingByLine.get(li.line);
+    if (h) {
+      if (h.level === 2) inExperience = isExperienceLikeH2(h);
+      continue;
+    }
+    if (!inExperience) continue;
+    const stripped = li.text.replace(/^[\s_*>"]+/, '');
+    const m = DATE_START_RE.exec(stripped);
+    if (!m) continue;
+    const rest = stripped.slice(m[0].length);
+    const isRange =
+      /^[\s_*]*([–—-]|\bto\b)/i.test(rest) || /\b(present|current|ongoing|now)\b/i.test(stripped);
+    if (!isRange) continue;
+    const kind = dateFormatKind(m[1].trim());
+    if (!kind) continue;
+    out.push({ line: li.line, token: m[1].trim(), kind });
+  }
+  return out;
+}
+
+/**
+ * #15 date-format consistency. Recruiters skim the right margin of the
+ * Experience section, and a resume that writes one role `Mar 2021 – Present`
+ * and the next `06/2018 – 02/2021` reads as half-edited. We bucket each role's
+ * start date by format, and when more than one bucket appears we flag the
+ * minority lines against the majority format. A tie on the top bucket is left
+ * alone — there's no obvious "intended" style to point at.
+ */
+function checkDateFormat(markdown: string): HealthFinding[] {
+  const dated = collectRoleDates(markdown);
+  if (dated.length < 2) return [];
+
+  const byKind = new Map<string, number>();
+  for (const d of dated) byKind.set(d.kind, (byKind.get(d.kind) ?? 0) + 1);
+  if (byKind.size < 2) return [];
+
+  let majorityKind = '';
+  let majorityCount = -1;
+  for (const [k, c] of byKind) {
+    if (c > majorityCount) {
+      majorityCount = c;
+      majorityKind = k;
+    }
+  }
+  const tiedTops = [...byKind.values()].filter((c) => c === majorityCount).length;
+  if (tiedTops > 1) return [];
+
+  const styleLabel: Record<string, string> = {
+    'month-year': "'Mar 2021'",
+    year: "'2021'",
+    numeric: "'03/2021'",
+    'numeric-day': "'03/05/2021'",
+    'month-day-year': "'Mar 5, 2021'",
+  };
+  return dated
+    .filter((d) => d.kind !== majorityKind)
+    .map((d) => ({
+      id: 'date-format',
+      severity: 'warn' as const,
+      message: `Line ${d.line} writes the date as '${d.token}' while most roles use the ${styleLabel[majorityKind]} style. Pick one date format for every role.`,
+      line: d.line,
+      offender: d.token,
+    }));
+}
+
 /**
  * #11 leftover placeholders. Flags a line that still carries a template
  * token (`TODO`, `lorem ipsum`) or an unfilled `[...]` / `{{...}}` slot whose
@@ -1952,6 +2054,7 @@ export function analyzeResume(
   findings.push(...checkBulletPunctuation(markdown));
   findings.push(...checkBulletCapitalization(markdown));
   findings.push(...checkDuplicateBullets(markdown));
+  findings.push(...checkDateFormat(markdown));
   findings.push(...checkPlaceholders(markdown));
 
   const score = computeScore(findings, stage);
