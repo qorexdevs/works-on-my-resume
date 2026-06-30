@@ -1065,6 +1065,39 @@ function checkExclamation(markdown: string): HealthFinding[] {
 }
 
 /**
+ * Smart punctuation pasted from Word or Docs - curly quotes, em/en dashes,
+ * a one-glyph ellipsis. They look fine on screen but older ATS parsers mangle
+ * them into mojibake, so the safe move is plain ASCII. We flag any bullet
+ * carrying one, one finding per bullet (first hit), and name the glyph so the
+ * fix is obvious. Key-value bullets (`- label: value`) are checked too since
+ * the problem is the character, not the phrasing.
+ */
+const SMART_PUNCT: Record<string, string> = {
+  '‘': "'", '’': "'", '“': '"', '”': '"',
+  '–': '-', '—': '-', '…': '...',
+};
+
+function checkSmartPunctuation(markdown: string): HealthFinding[] {
+  const bullets = findBullets(splitLines(markdown));
+  const re = /[‘’“”–—…]/;
+  const findings: HealthFinding[] = [];
+  for (const bullet of bullets) {
+    const m = re.exec(bullet.content);
+    if (!m) continue;
+    const ch = m[0];
+    findings.push({
+      id: 'smart-punctuation',
+      severity: 'warn',
+      message: `Line ${bullet.line} has a smart character '${ch}'. Swap it for '${SMART_PUNCT[ch]}' - plain ASCII survives every ATS, curly glyphs can turn to garbage.`,
+      line: bullet.line,
+      offender: findOffenderInLine(bullet.text, ch),
+      suggest: { kind: 'example', section: 'Experience' },
+    });
+  }
+  return findings;
+}
+
+/**
  * Passive voice in bullets. "Sales were increased 20%" hides who did the work;
  * recruiters want the active "Increased sales 20%". We look for a `was`/`were`
  * auxiliary followed by an -ed participle anywhere in the bullet. Bullets that
@@ -2293,6 +2326,7 @@ export function analyzeResume(
   findings.push(...checkFillerAdverbs(markdown));
   findings.push(...checkOpenEndedLists(markdown));
   findings.push(...checkExclamation(markdown));
+  findings.push(...checkSmartPunctuation(markdown));
   findings.push(...checkReferencesLine(markdown));
   findings.push(...checkObjectiveStatement(markdown));
   findings.push(...checkPersonalDetails(markdown));
