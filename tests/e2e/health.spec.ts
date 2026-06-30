@@ -596,3 +596,33 @@ test('first-person finding fires for a bullet starting with "I led"', async ({ p
   await expect(finding).toHaveCount(1);
   await expect(finding.getByRole('button', { name: /jump to line 17/i })).toBeVisible();
 });
+
+test('tech-casing finding fires for a tool written in the wrong case', async ({ page }) => {
+  const md = [
+    '---',
+    'name: Test User',
+    'role: Engineer',
+    'email: test@example.com',
+    'links:',
+    '  - GitHub: https://example.com',
+    '---',
+    '',
+    '## Experience',
+    '',
+    '### Senior Engineer — Acme',
+    '',
+    '- Shipped the billing service and pushed it to github.',
+    '',
+  ].join('\n');
+
+  await page.getByLabel(/markdown source/i).fill(md);
+  await expect(page.getByRole('article', { name: /rendered resume/i })).toBeVisible();
+  await openHealthTab(page);
+
+  const panel = healthPanel(page);
+  const finding = panel.locator('.health__list [data-rule="tech-casing"]');
+  // The frontmatter "GitHub:" link is correctly cased and skipped; only the
+  // lowercase "github" in the bullet on line 13 should fire.
+  await expect(finding).toHaveCount(1);
+  await expect(finding.getByRole('button', { name: /jump to line 13/i })).toBeVisible();
+});
