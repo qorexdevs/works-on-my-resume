@@ -654,6 +654,35 @@ test('spelled-number finding fires for a quantity written in words', async ({ pa
   await expect(finding.getByRole('button', { name: /jump to line 11/i })).toBeVisible();
 });
 
+test('smart-punctuation finding fires for a curly apostrophe in a bullet', async ({
+  page,
+}) => {
+  const md = [
+    '---',
+    'name: Test User',
+    'role: Engineer',
+    'email: test@example.com',
+    '---',
+    '',
+    '## Experience',
+    '',
+    '### Senior Engineer at Acme',
+    '',
+    '- Owned the team’s billing rewrite end to end',
+    '',
+  ].join('\n');
+
+  await page.getByLabel(/markdown source/i).fill(md);
+  await expect(page.getByRole('article', { name: /rendered resume/i })).toBeVisible();
+  await openHealthTab(page);
+
+  const panel = healthPanel(page);
+  const finding = panel.locator('.health__list [data-rule="smart-punctuation"]');
+  // The curly apostrophe in "team’s" on line 11 should read as a plain '.
+  await expect(finding).toHaveCount(1);
+  await expect(finding.getByRole('button', { name: /jump to line 11/i })).toBeVisible();
+});
+
 test('verb-tense finding fires when one role mixes past and present openers', async ({
   page,
 }) => {
