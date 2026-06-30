@@ -98,12 +98,12 @@ on a clinical-imaging desktop product (C++, Qt).
 
 ## Selected Projects and Talks
 
-- **`relay-cache`** — open-source remote build cache used internally at
+- **`relay-cache`** - open-source remote build cache used internally at
   Tessera and externally by a handful of consultancies.
   [github.com/marcus-halberg-example/relay-cache](https://github.com/marcus-halberg-example/relay-cache)
-- **"Boring deploys at logistics scale"** — talk at NordicConf 2024 on
+- **"Boring deploys at logistics scale"** - talk at NordicConf 2024 on
   the progressive-delivery rollout at Tessera.
-- **"The on-call rotation is a product"** — guest essay on the SREcon
+- **"The on-call rotation is a product"** - guest essay on the SREcon
   blog, 2023.
 
 ## Skills
