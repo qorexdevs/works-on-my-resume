@@ -1396,6 +1396,127 @@ function checkBulletCapitalization(markdown: string): HealthFinding[] {
 }
 
 /**
+ * Common resume action verbs in their plain present-tense base form. A `-s`
+ * third-person form (`builds`, `leads`) is treated as present too. Invariant
+ * verbs (`set`, `cut`, `read`) and ambiguous ones (`found` — past of *find*
+ * but also "to found a company") are deliberately left out: their opener
+ * can't be pinned to one tense, so they're skipped rather than guessed.
+ */
+const PRESENT_VERBS = new Set([
+  'build', 'lead', 'manage', 'develop', 'create', 'design', 'drive', 'own',
+  'maintain', 'write', 'run', 'ship', 'deliver', 'improve', 'optimize', 'reduce',
+  'increase', 'launch', 'scale', 'automate', 'architect', 'mentor', 'coordinate',
+  'implement', 'integrate', 'migrate', 'refactor', 'deploy', 'support', 'analyze',
+  'research', 'define', 'establish', 'oversee', 'streamline', 'spearhead', 'grow',
+  'win', 'sell', 'keep', 'hold', 'take', 'give', 'draw', 'meet', 'bring', 'teach',
+  'buy', 'seek', 'spend', 'send', 'find', 'plan', 'organize', 'direct', 'handle',
+  'head', 'boost', 'save', 'generate', 'enable', 'produce', 'monitor', 'debug',
+  'test', 'review', 'document', 'present', 'negotiate', 'recruit', 'train', 'hire',
+  'configure', 'orchestrate', 'prototype',
+]);
+
+/** Irregular past forms the `-ed` rule wouldn't catch. */
+const IRREGULAR_PAST = new Set([
+  'led', 'built', 'ran', 'wrote', 'made', 'drove', 'grew', 'won', 'sold', 'kept',
+  'held', 'took', 'gave', 'drew', 'met', 'brought', 'taught', 'bought', 'sought',
+  'spent', 'sent', 'began', 'chose', 'oversaw', 'rebuilt', 'broke', 'spoke', 'rose',
+  'dealt',
+]);
+
+/** Past, present, or null when the opener can't be confidently classified. */
+function verbTense(word: string): 'past' | 'present' | null {
+  const w = word.toLowerCase().replace(/[^a-z]/g, '');
+  if (!w) return null;
+  if (IRREGULAR_PAST.has(w)) return 'past';
+  if (PRESENT_VERBS.has(w)) return 'present';
+  if (w.endsWith('s') && PRESENT_VERBS.has(w.slice(0, -1))) return 'present';
+  if (/eed$/.test(w)) return null; // exceed / proceed / need — present despite -ed
+  if (/ed$/.test(w) && w.length >= 4) return 'past';
+  return null;
+}
+
+/**
+ * #16 verb-tense consistency. A role that mixes past and present openers
+ * (`Built ... Lead ... Shipped ...`) reads as unproofed. The settled
+ * convention is one tense per role — past for finished work, present for a
+ * role you still hold — so each role is checked on its own, not the document
+ * as a whole: a current role written in present tense next to past roles is
+ * correct, and a document-wide majority would wrongly flag it. Within a role
+ * we classify each bullet's opening verb, and when both tenses appear with a
+ * clear majority we flag the minority, one finding per bullet. A tie leaves
+ * the role alone, and openers we can't classify (an unknown verb, a noun, a
+ * number) are ignored rather than guessed.
+ */
+function checkVerbTense(markdown: string): HealthFinding[] {
+  const lines = splitLines(markdown);
+  const headingByLine = new Map<number, Heading>();
+  for (const h of findHeadings(lines)) headingByLine.set(h.line, h);
+
+  interface Opener {
+    line: number;
+    word: string;
+    text: string;
+    tense: 'past' | 'present';
+  }
+  const groups: Opener[][] = [];
+  let currentH2: Heading | null = null;
+  let group: Opener[] | null = null;
+
+  for (const li of lines) {
+    const h = headingByLine.get(li.line);
+    if (h) {
+      if (h.level === 2) {
+        currentH2 = h;
+        group = null;
+      } else if (h.level === 3) {
+        group = [];
+        groups.push(group);
+      }
+      continue;
+    }
+    if (!isExperienceLikeH2(currentH2)) continue;
+    const b = findBulletInLine(li);
+    if (!b) continue;
+    const content = b.content.replace(/^[*_~`]+/, '').trimStart();
+    if (/^[A-Za-z][A-Za-z'-]*:/.test(content)) continue; // label: value
+    const first = /^[A-Za-z][A-Za-z'-]*/.exec(content)?.[0];
+    if (!first) continue;
+    const tense = verbTense(first);
+    if (!tense) continue;
+    // Bullets directly under the H2 (no H3 open yet) form their own group.
+    if (!group) {
+      group = [];
+      groups.push(group);
+    }
+    group.push({ line: b.line, word: first, text: b.text, tense });
+  }
+
+  const findings: HealthFinding[] = [];
+  for (const g of groups) {
+    if (g.length < 3) continue;
+    const past = g.filter((o) => o.tense === 'past');
+    const present = g.filter((o) => o.tense === 'present');
+    if (past.length === 0 || present.length === 0) continue;
+    if (past.length === present.length) continue;
+    const majorityPast = past.length > present.length;
+    const offenders = majorityPast ? present : past;
+    const majority = majorityPast ? 'past' : 'present';
+    const minority = majorityPast ? 'present' : 'past';
+    for (const o of offenders) {
+      findings.push({
+        id: 'verb-tense',
+        severity: 'warn',
+        message: `Line ${o.line} opens in ${minority} tense ('${o.word}') while the rest of this role is ${majority} tense. Keep one tense per role.`,
+        line: o.line,
+        offender: o.word,
+        suggest: { kind: 'rewrite', bulletText: o.text },
+      });
+    }
+  }
+  return findings;
+}
+
+/**
  * #14 duplicate bullets. Copy-pasting a bullet from one role to the next and
  * forgetting to edit it leaves the same achievement twice — a tell that the
  * resume was rushed. We normalize each Experience bullet (drop the marker and
@@ -2125,6 +2246,7 @@ export function analyzeResume(
   findings.push(...checkStuffedBullets(markdown));
   findings.push(...checkBulletPunctuation(markdown));
   findings.push(...checkBulletCapitalization(markdown));
+  findings.push(...checkVerbTense(markdown));
   findings.push(...checkDuplicateBullets(markdown));
   findings.push(...checkDateFormat(markdown));
   findings.push(...checkPlaceholders(markdown));

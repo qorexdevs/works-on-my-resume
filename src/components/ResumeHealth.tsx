@@ -386,6 +386,10 @@ function nextStepLabel(finding: HealthFinding, markdown: string): string {
       return role
         ? `Tighten the run-on bullet in your ${bulletOrdinal ?? 'next'} bullet under "${role}"`
         : `Tighten the run-on bullet on line ${line}`;
+    case 'verb-tense':
+      return role
+        ? `Match the tense of your ${bulletOrdinal ?? 'next'} bullet under "${role}" to the rest of the role`
+        : `Match the tense of the bullet on line ${line} to the rest of the role`;
     case 'sections':
       return finding.message;
     default:
