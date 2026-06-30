@@ -327,6 +327,32 @@ const VAGUE_QUANTIFIERS = [
 ];
 
 /**
+ * Spelled-out numbers in achievement bullets. A metric reads stronger as a
+ * numeral — "5 engineers", "20 percent" — because digits catch the eye on a
+ * skim and survive ATS parsing, while "five engineers" blends into the prose.
+ * We only flag a spelled cardinal that quantifies a countable noun
+ * (`SPELLED_NUMBERS` immediately followed by a `METRIC_NOUNS` word). "one" is
+ * left out: it reads as an article far more often than a count ("one of the",
+ * "no one"), and ordinals (first, second) are legitimate in prose.
+ */
+const SPELLED_NUMBERS = [
+  'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten',
+  'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen',
+  'seventeen', 'eighteen', 'nineteen', 'twenty', 'thirty', 'forty', 'fifty',
+  'sixty', 'seventy', 'eighty', 'ninety', 'hundred', 'thousand', 'million',
+  'billion', 'dozen',
+];
+const METRIC_NOUNS = [
+  'years?', 'months?', 'weeks?', 'days?', 'hours?', 'people', 'persons?',
+  'engineers?', 'developers?', 'designers?', 'employees?', 'members?',
+  'clients?', 'customers?', 'users?', 'projects?', 'teams?', 'products?',
+  'releases?', 'features?', 'services?', 'applications?', 'apps?', 'systems?',
+  'repositories?', 'repos?', 'countries?', 'markets?', 'languages?',
+  'partners?', 'vendors?', 'stakeholders?', 'times?', 'percent', 'awards?',
+  'patents?', 'papers?', 'interns?', 'reports?', 'contractors?',
+];
+
+/**
  * Objective-statement openers. A line that leads with what the candidate WANTS
  * ("Seeking a challenging role to apply my skills") spends the most-read lines
  * on the job hunt instead of the work. Modern resumes open with evidence, not
@@ -917,6 +943,36 @@ function checkVagueQuantifiers(markdown: string): HealthFinding[] {
       });
       break;
     }
+  }
+  return findings;
+}
+
+/**
+ * Spelled-out numbers. Flags a bullet that writes a quantity in words where a
+ * numeral would read stronger (`SPELLED_NUMBERS` + `METRIC_NOUNS`), one finding
+ * per bullet (first hit). Key-value bullets (`- label: value`) are left alone
+ * like the other phrase checks.
+ */
+function checkSpelledNumbers(markdown: string): HealthFinding[] {
+  const bullets = findBullets(splitLines(markdown));
+  const re = new RegExp(
+    `\\b(${SPELLED_NUMBERS.join('|')})\\s+(${METRIC_NOUNS.join('|')})\\b`,
+    'i',
+  );
+  const findings: HealthFinding[] = [];
+  for (const bullet of bullets) {
+    const content = bullet.content.replace(/^[*_~`]+/, '').trimStart();
+    if (/^[A-Za-z][A-Za-z'-]*:/.test(content)) continue;
+    const m = re.exec(content);
+    if (!m) continue;
+    findings.push({
+      id: 'spelled-number',
+      severity: 'warn',
+      message: `Line ${bullet.line} spells out '${m[0]}'. Use the numeral — it stands out on a skim and parses cleanly.`,
+      line: bullet.line,
+      offender: findOffenderInLine(bullet.text, m[0]),
+      suggest: { kind: 'example', section: 'Experience' },
+    });
   }
   return findings;
 }
@@ -2233,6 +2289,7 @@ export function analyzeResume(
   findings.push(...checkFirstPerson(markdown));
   findings.push(...checkBuzzwords(markdown));
   findings.push(...checkVagueQuantifiers(markdown));
+  findings.push(...checkSpelledNumbers(markdown));
   findings.push(...checkFillerAdverbs(markdown));
   findings.push(...checkOpenEndedLists(markdown));
   findings.push(...checkExclamation(markdown));
