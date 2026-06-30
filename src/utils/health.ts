@@ -442,6 +442,38 @@ const PLACEHOLDER_SLOT_WORDS = [
   'link',
 ];
 
+/**
+ * Canonical casing for common tech terms. A resume that writes "javascript",
+ * "Github", or "postgresql" reads as careless to the engineers screening it —
+ * each tool has a house spelling and getting it wrong is a small tell. The map
+ * is lowercased term → canonical form; the check matches each term
+ * case-insensitively on a word boundary and flags an occurrence whose casing
+ * isn't the canonical one. Only terms whose canonical form is a pure re-casing
+ * of the same letters live here, so the fix is always "change the case", never
+ * "spell it differently".
+ */
+const TECH_CASING: Record<string, string> = {
+  javascript: 'JavaScript',
+  typescript: 'TypeScript',
+  github: 'GitHub',
+  gitlab: 'GitLab',
+  postgresql: 'PostgreSQL',
+  mysql: 'MySQL',
+  nosql: 'NoSQL',
+  graphql: 'GraphQL',
+  mongodb: 'MongoDB',
+  dynamodb: 'DynamoDB',
+  mariadb: 'MariaDB',
+  macos: 'macOS',
+  ios: 'iOS',
+  devops: 'DevOps',
+  oauth: 'OAuth',
+  openapi: 'OpenAPI',
+  webrtc: 'WebRTC',
+  wordpress: 'WordPress',
+  powershell: 'PowerShell',
+};
+
 /** Bullets-per-role envelope. Below `min` → thin, above `max` → noisy. */
 const BULLETS_PER_ROLE = { min: 2, max: 6 };
 
@@ -1096,6 +1128,45 @@ function checkPersonalDetails(markdown: string): HealthFinding[] {
       line: li.line,
       offender: findOffenderInLine(li.text, m[0]),
     });
+  }
+  return findings;
+}
+
+/**
+ * Tech-term casing. Flags a known tool written in the wrong case
+ * ("javascript" → "JavaScript", "Github" → "GitHub"). Matches each term
+ * case-insensitively on a word boundary across the body and reports the first
+ * mis-cased occurrence per term. An all-uppercase occurrence ("JAVASCRIPT" in
+ * a skills strip) is left alone — that's a deliberate style choice, not a slip.
+ * The frontmatter is skipped, and a URL-ish context (`github.com`, `/gitlab`,
+ * `@github`) is excluded so a link slug isn't read as prose.
+ */
+function checkTechCasing(markdown: string): HealthFinding[] {
+  const fmEnd = frontmatterEndLine(markdown);
+  const findings: HealthFinding[] = [];
+  const seen = new Set<string>();
+  for (const li of splitLines(markdown)) {
+    if (li.line <= fmEnd) continue;
+    for (const [lower, canonical] of Object.entries(TECH_CASING)) {
+      if (seen.has(lower)) continue;
+      const m = new RegExp(`\\b${escapeRegExp(lower)}\\b`, 'i').exec(li.text);
+      if (!m) continue;
+      const found = m[0];
+      if (found === canonical) continue; // already correct
+      if (found === found.toUpperCase()) continue; // all-caps style, leave it
+      // Skip link slugs: `github.com`, `gitlab.io/...`, `@github`, `user.github`.
+      const tail = li.text.slice(m.index + found.length);
+      if (/^[./:@-]\w/.test(tail)) continue;
+      if (/[/@.]$/.test(li.text.slice(0, m.index))) continue;
+      seen.add(lower);
+      findings.push({
+        id: 'tech-casing',
+        severity: 'warn',
+        message: `Line ${li.line} writes '${found}' — the house spelling is '${canonical}'. Match it so the tools read as familiar.`,
+        line: li.line,
+        offender: found,
+      });
+    }
   }
   return findings;
 }
@@ -2047,6 +2118,7 @@ export function analyzeResume(
   findings.push(...checkReferencesLine(markdown));
   findings.push(...checkObjectiveStatement(markdown));
   findings.push(...checkPersonalDetails(markdown));
+  findings.push(...checkTechCasing(markdown));
   findings.push(...checkRepeatedOpeners(markdown));
   findings.push(...checkBulletsPerRole(markdown));
   findings.push(...checkLongBullets(markdown));
