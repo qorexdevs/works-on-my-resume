@@ -627,6 +627,33 @@ test('tech-casing finding fires for a tool written in the wrong case', async ({ 
   await expect(finding.getByRole('button', { name: /jump to line 13/i })).toBeVisible();
 });
 
+test('spelled-number finding fires for a quantity written in words', async ({ page }) => {
+  const md = [
+    '---',
+    'name: Test User',
+    'role: Engineer',
+    'email: test@example.com',
+    '---',
+    '',
+    '## Experience',
+    '',
+    '### Senior Engineer at Acme',
+    '',
+    '- Mentored five engineers and shipped the new billing flow',
+    '',
+  ].join('\n');
+
+  await page.getByLabel(/markdown source/i).fill(md);
+  await expect(page.getByRole('article', { name: /rendered resume/i })).toBeVisible();
+  await openHealthTab(page);
+
+  const panel = healthPanel(page);
+  const finding = panel.locator('.health__list [data-rule="spelled-number"]');
+  // "five engineers" on line 11 should read as "5 engineers".
+  await expect(finding).toHaveCount(1);
+  await expect(finding.getByRole('button', { name: /jump to line 11/i })).toBeVisible();
+});
+
 test('verb-tense finding fires when one role mixes past and present openers', async ({
   page,
 }) => {
