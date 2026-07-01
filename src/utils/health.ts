@@ -1098,6 +1098,43 @@ function checkSmartPunctuation(markdown: string): HealthFinding[] {
 }
 
 /**
+ * Words that legitimately double back to back in English ("the fact that that
+ * approach", "we had had two outages"). They're rare in resume bullets but real
+ * enough that flagging them would be a false positive, so the repeated-word
+ * check skips them.
+ */
+const REPEATABLE_WORDS = new Set(['that', 'had']);
+
+/**
+ * Doubled words. A bullet that carries the same word twice in a row ("the the
+ * migration", "and and shipped") is a copy-paste or typing slip a spellcheck
+ * sails right past, and it reads as unproofed. We flag the first back-to-back
+ * repeat in a bullet, one finding per bullet. `REPEATABLE_WORDS` are exempt and
+ * key-value bullets (`- label: value`) are left alone like the other phrase
+ * checks.
+ */
+function checkRepeatedWords(markdown: string): HealthFinding[] {
+  const bullets = findBullets(splitLines(markdown));
+  const findings: HealthFinding[] = [];
+  for (const bullet of bullets) {
+    const content = bullet.content.replace(/^[*_~`]+/, '').trimStart();
+    if (/^[A-Za-z][A-Za-z'-]*:/.test(content)) continue;
+    // The `i` flag also folds the backreference, so "The the" matches.
+    const m = /\b([A-Za-z][A-Za-z'-]*)\s+\1\b/i.exec(content);
+    if (!m) continue;
+    if (REPEATABLE_WORDS.has(m[1].toLowerCase())) continue;
+    findings.push({
+      id: 'repeated-word',
+      severity: 'warn',
+      message: `Line ${bullet.line} repeats '${m[1]}' back to back. Drop the duplicate.`,
+      line: bullet.line,
+      offender: findOffenderInLine(bullet.text, m[0]),
+    });
+  }
+  return findings;
+}
+
+/**
  * Passive voice in bullets. "Sales were increased 20%" hides who did the work;
  * recruiters want the active "Increased sales 20%". We look for a `was`/`were`
  * auxiliary followed by an -ed participle anywhere in the bullet. Bullets that
@@ -2327,6 +2364,7 @@ export function analyzeResume(
   findings.push(...checkOpenEndedLists(markdown));
   findings.push(...checkExclamation(markdown));
   findings.push(...checkSmartPunctuation(markdown));
+  findings.push(...checkRepeatedWords(markdown));
   findings.push(...checkReferencesLine(markdown));
   findings.push(...checkObjectiveStatement(markdown));
   findings.push(...checkPersonalDetails(markdown));
