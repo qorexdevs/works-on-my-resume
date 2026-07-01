@@ -712,6 +712,33 @@ test('space-before-punctuation finding fires for a space before a comma', async 
   await expect(finding.getByRole('button', { name: /jump to line 11/i })).toBeVisible();
 });
 
+test('double-space finding fires for two spaces wedged between words', async ({ page }) => {
+  const md = [
+    '---',
+    'name: Test User',
+    'role: Engineer',
+    'email: test@example.com',
+    '---',
+    '',
+    '## Experience',
+    '',
+    '### Senior Engineer at Acme',
+    '',
+    '- Shipped the  billing API in a single quarter',
+    '',
+  ].join('\n');
+
+  await page.getByLabel(/markdown source/i).fill(md);
+  await expect(page.getByRole('article', { name: /rendered resume/i })).toBeVisible();
+  await openHealthTab(page);
+
+  const panel = healthPanel(page);
+  const finding = panel.locator('.health__list [data-rule="double-space"]');
+  // The "the  billing" double space on line 11 is a copy-paste artifact.
+  await expect(finding).toHaveCount(1);
+  await expect(finding.getByRole('button', { name: /jump to line 11/i })).toBeVisible();
+});
+
 test('repeated-word finding fires for a doubled word in a bullet', async ({ page }) => {
   const md = [
     '---',
