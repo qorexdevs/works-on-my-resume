@@ -1098,6 +1098,38 @@ function checkSmartPunctuation(markdown: string): HealthFinding[] {
 }
 
 /**
+ * Contractions in bullets. A resume keeps a formal register, so "didn't",
+ * "you'll", "they're" read as too casual next to the rest of the prose - spell
+ * them out. We match the unambiguous contraction suffixes (n't, 're, 've, 'll,
+ * 'm) and flag the first hit per bullet. The possessive 's is left out on
+ * purpose (it's a genitive far more often than "is"), and first-person
+ * contractions ("I'm", "we've") are ceded to checkFirstPerson so one bullet
+ * isn't flagged twice. Key-value bullets (`- label: value`) are skipped like
+ * the other phrase checks; straight and curly apostrophes both count.
+ */
+function checkContractions(markdown: string): HealthFinding[] {
+  const bullets = findBullets(splitLines(markdown));
+  const re = /\b[A-Za-z]+(?:n['’]t|['’](?:re|ve|ll|m))\b/i;
+  const findings: HealthFinding[] = [];
+  for (const bullet of bullets) {
+    const content = bullet.content.replace(/^[*_~`]+/, '').trimStart();
+    if (/^[A-Za-z][A-Za-z'-]*:/.test(content)) continue;
+    const m = re.exec(content);
+    if (!m) continue;
+    // checkFirstPerson already owns I'm / I've / we're / we've — don't double-fire.
+    if (/^(?:i|we)['’]/i.test(m[0])) continue;
+    findings.push({
+      id: 'contraction',
+      severity: 'warn',
+      message: `Line ${bullet.line} uses the contraction '${m[0]}'. Spell it out - a resume keeps a formal register.`,
+      line: bullet.line,
+      offender: findOffenderInLine(bullet.text, m[0]),
+    });
+  }
+  return findings;
+}
+
+/**
  * Words that legitimately double back to back in English ("the fact that that
  * approach", "we had had two outages"). They're rare in resume bullets but real
  * enough that flagging them would be a false positive, so the repeated-word
@@ -2364,6 +2396,7 @@ export function analyzeResume(
   findings.push(...checkOpenEndedLists(markdown));
   findings.push(...checkExclamation(markdown));
   findings.push(...checkSmartPunctuation(markdown));
+  findings.push(...checkContractions(markdown));
   findings.push(...checkRepeatedWords(markdown));
   findings.push(...checkReferencesLine(markdown));
   findings.push(...checkObjectiveStatement(markdown));
