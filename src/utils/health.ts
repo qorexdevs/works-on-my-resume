@@ -1130,6 +1130,34 @@ function checkContractions(markdown: string): HealthFinding[] {
 }
 
 /**
+ * A space wedged in front of a comma, period, semicolon, `!` or `?`
+ * ("shipped the API , then scaled it .") is a typing slip or a paste artifact
+ * that a spellcheck ignores, and it reads as unproofed. We flag the first hit
+ * per bullet. The colon is left out on purpose - ranges and ratios ("3 : 1")
+ * and the odd spaced label make it too noisy - and key-value bullets
+ * (`- label: value`) are skipped like the other phrase checks.
+ */
+function checkSpaceBeforePunctuation(markdown: string): HealthFinding[] {
+  const bullets = findBullets(splitLines(markdown));
+  const re = /\s([,;.!?])/;
+  const findings: HealthFinding[] = [];
+  for (const bullet of bullets) {
+    const content = bullet.content.replace(/^[*_~`]+/, '').trimStart();
+    if (/^[A-Za-z][A-Za-z'-]*:/.test(content)) continue;
+    const m = re.exec(content);
+    if (!m) continue;
+    findings.push({
+      id: 'space-before-punctuation',
+      severity: 'warn',
+      message: `Line ${bullet.line} has a space before '${m[1]}'. Delete it - the space belongs after the mark, not before.`,
+      line: bullet.line,
+      offender: findOffenderInLine(bullet.text, m[0]),
+    });
+  }
+  return findings;
+}
+
+/**
  * Words that legitimately double back to back in English ("the fact that that
  * approach", "we had had two outages"). They're rare in resume bullets but real
  * enough that flagging them would be a false positive, so the repeated-word
@@ -2396,6 +2424,7 @@ export function analyzeResume(
   findings.push(...checkOpenEndedLists(markdown));
   findings.push(...checkExclamation(markdown));
   findings.push(...checkSmartPunctuation(markdown));
+  findings.push(...checkSpaceBeforePunctuation(markdown));
   findings.push(...checkContractions(markdown));
   findings.push(...checkRepeatedWords(markdown));
   findings.push(...checkReferencesLine(markdown));
