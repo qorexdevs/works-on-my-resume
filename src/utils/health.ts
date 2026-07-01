@@ -1158,6 +1158,33 @@ function checkSpaceBeforePunctuation(markdown: string): HealthFinding[] {
 }
 
 /**
+ * Double spaces between words. Two spaces wedged between two word characters
+ * ("shipped the  billing API") is a copy-paste artifact that survives a
+ * spellcheck and reads as unproofed. We require a word char on both sides so
+ * the classic two-spaces-after-a-period convention ("Done.  Then scaled it")
+ * and any Markdown alignment padding are left alone. One finding per bullet.
+ */
+function checkDoubleSpace(markdown: string): HealthFinding[] {
+  const bullets = findBullets(splitLines(markdown));
+  const re = /\w {2,}\w/;
+  const findings: HealthFinding[] = [];
+  for (const bullet of bullets) {
+    const content = bullet.content.replace(/^[*_~`]+/, '').trimStart();
+    if (/^[A-Za-z][A-Za-z'-]*:/.test(content)) continue;
+    const m = re.exec(content);
+    if (!m) continue;
+    findings.push({
+      id: 'double-space',
+      severity: 'warn',
+      message: `Line ${bullet.line} has a double space. Collapse it to one - stray spacing reads as unproofed.`,
+      line: bullet.line,
+      offender: findOffenderInLine(bullet.text, m[0]),
+    });
+  }
+  return findings;
+}
+
+/**
  * Words that legitimately double back to back in English ("the fact that that
  * approach", "we had had two outages"). They're rare in resume bullets but real
  * enough that flagging them would be a false positive, so the repeated-word
@@ -2425,6 +2452,7 @@ export function analyzeResume(
   findings.push(...checkExclamation(markdown));
   findings.push(...checkSmartPunctuation(markdown));
   findings.push(...checkSpaceBeforePunctuation(markdown));
+  findings.push(...checkDoubleSpace(markdown));
   findings.push(...checkContractions(markdown));
   findings.push(...checkRepeatedWords(markdown));
   findings.push(...checkReferencesLine(markdown));
