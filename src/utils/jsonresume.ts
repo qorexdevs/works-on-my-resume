@@ -58,6 +58,17 @@ function asNonEmptyString(value: unknown): string | undefined {
   return undefined;
 }
 
+// An ongoing role writes "Present" (or a synonym) as its end. JSON Resume has
+// no such value: a current entry just omits endDate, so drop the marker here
+// instead of emitting endDate: "Present", which fails schema validation and
+// trips consumers that parse the field as a date.
+function normalizeEndDate(value: string | undefined): string | undefined {
+  if (!value) return undefined;
+  return /^(present|current|now|ongoing|to date|to present)$/i.test(value.trim())
+    ? undefined
+    : value;
+}
+
 /** A pragmatic plain-object check that excludes arrays and null. */
 function isPlainObject(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === 'object' && !Array.isArray(value);
@@ -228,7 +239,7 @@ function parseExperienceSection(lines: string[], start: number, end: number): Js
           // dates like 2021-03-01 are not torn apart at their own hyphens.
           const dateParts = dateSeg.split(/\s*[–—]\s*|\s+-\s+/);
           if (dateParts[0]) startDate = dateParts[0].trim();
-          if (dateParts[1]) endDate = dateParts[1].trim();
+          if (dateParts[1]) endDate = normalizeEndDate(dateParts[1].trim());
         }
         if (segments.length > 0) {
           location = segments.join(' · ');
@@ -306,7 +317,7 @@ function parseEducationSection(lines: string[], start: number, end: number): Jso
         const meta = italicMatch[1].split(/\s·\s|\s\|\s/)[0]?.trim() ?? '';
         const dateParts = meta.split(/\s*[–—]\s*|\s+-\s+/);
         if (dateParts[0]) startDate = dateParts[0].trim();
-        if (dateParts[1]) endDate = dateParts[1].trim();
+        if (dateParts[1]) endDate = normalizeEndDate(dateParts[1].trim());
         continue;
       }
       if (/^[-*+]\s+/.test(trimmed)) {
@@ -567,7 +578,8 @@ function workEntryToMarkdown(entry: JsonResumeWork): string {
   const out: string[] = [`### ${heading}`, ''];
   const metaParts: string[] = [];
   if (startDate || endDate) {
-    metaParts.push([startDate, endDate].filter(Boolean).join(' – '));
+    const displayEnd = endDate ?? (startDate ? 'Present' : undefined);
+    metaParts.push([startDate, displayEnd].filter(Boolean).join(' – '));
   }
   if (location) metaParts.push(location);
   if (metaParts.length > 0) {
@@ -600,7 +612,8 @@ function educationEntryToMarkdown(entry: JsonResumeEducation): string {
   const endDate = asNonEmptyString(entry.endDate);
   const out: string[] = [`### ${heading}`, ''];
   if (startDate || endDate) {
-    out.push(`_${[startDate, endDate].filter(Boolean).join(' – ')}_`);
+    const displayEnd = endDate ?? (startDate ? 'Present' : undefined);
+    out.push(`_${[startDate, displayEnd].filter(Boolean).join(' – ')}_`);
     out.push('');
   }
   if (Array.isArray(entry.courses)) {

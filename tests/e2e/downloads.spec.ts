@@ -159,12 +159,7 @@ function withinTolerance(
 test('resume.md export — frontmatter + canonical body sections + size sanity', async ({
   page,
 }, testInfo) => {
-  const path = await clickDownload(
-    page,
-    /download markdown/i,
-    'resume.md',
-    testInfo.project.name,
-  );
+  const path = await clickDownload(page, /download markdown/i, 'resume.md', testInfo.project.name);
   const md = readText(path);
 
   /* YAML frontmatter fence at the very top — the marker that downstream
@@ -178,9 +173,9 @@ test('resume.md export — frontmatter + canonical body sections + size sanity',
   /* Body sections — at minimum these three are required by the JSON Resume
      export path AND by the user-facing print contract. */
   for (const section of SAMPLE_SECTIONS) {
-    expect.soft(md, `markdown contains "## ${section}"`).toMatch(
-      new RegExp(`^##\\s+${section}\\s*$`, 'm'),
-    );
+    expect
+      .soft(md, `markdown contains "## ${section}"`)
+      .toMatch(new RegExp(`^##\\s+${section}\\s*$`, 'm'));
   }
 
   /* Size sanity: the sample is ~5–10 KB. A 0-byte file would be a bug; a
@@ -198,12 +193,7 @@ test('resume.html export — well-formed, CSP-safe, contact header present, rend
   browser,
   page,
 }, testInfo) => {
-  const path = await clickDownload(
-    page,
-    /download html/i,
-    'resume.html',
-    testInfo.project.name,
-  );
+  const path = await clickDownload(page, /download html/i, 'resume.html', testInfo.project.name);
   const html = readText(path);
 
   /* ----- Title ------------------------------------------------------- */
@@ -212,16 +202,12 @@ test('resume.html export — well-formed, CSP-safe, contact header present, rend
   /* ----- Contact header (closes #124) -------------------------------- */
   expect(html).toMatch(/<header class="resume-preview__contact">[\s\S]+?<\/header>/);
   expect(html).toContain(SAMPLE_NAME);
-  expect(html).toMatch(
-    /<p class="resume-preview__contact-name">Avery Quinn<\/p>/,
-  );
+  expect(html).toMatch(/<p class="resume-preview__contact-name">Avery Quinn<\/p>/);
   /* At least one of email / linkedin / github appears in the meta row. */
   const contactMetaMatch = /<p class="resume-preview__contact-meta">([\s\S]+?)<\/p>/.exec(html);
   expect(contactMetaMatch, 'contact-meta paragraph present').not.toBeNull();
   const contactMeta = contactMetaMatch![1];
-  expect(contactMeta).toMatch(
-    /avery\.quinn@example\.com|linkedin\.com|github\.com/i,
-  );
+  expect(contactMeta).toMatch(/avery\.quinn@example\.com|linkedin\.com|github\.com/i);
 
   /* ----- Body H2s ---------------------------------------------------- */
   for (const section of SAMPLE_SECTIONS) {
@@ -361,7 +347,10 @@ test('resume.pdf — theme print fills page edges with theme bg (#123)', async (
   } catch {
     havePoppler = false;
   }
-  test.skip(!havePoppler, 'pdftoppm (poppler-utils) not installed — corner-pixel inspection skipped');
+  test.skip(
+    !havePoppler,
+    'pdftoppm (poppler-utils) not installed — corner-pixel inspection skipped',
+  );
 
   const outPrefix = join(TEST_RESULTS_ROOT, testInfo.project.name, 'resume-page');
   execFileSync('pdftoppm', ['-png', '-r', '100', '-f', '1', '-l', '1', pdfPath, outPrefix]);
@@ -425,10 +414,7 @@ test('resume.pdf — theme print fills page edges with theme bg (#123)', async (
        the assertion and continue. The PDF presence + size were already
        asserted above, so #123's regression coverage stays intact on CI. */
     const allWhite = Object.values(corners).every(
-      (c) =>
-        (c as number[])[0] === 255 &&
-        (c as number[])[1] === 255 &&
-        (c as number[])[2] === 255,
+      (c) => (c as number[])[0] === 255 && (c as number[])[1] === 255 && (c as number[])[2] === 255,
     );
     const expectedIsDark = expectedTheme[0] + expectedTheme[1] + expectedTheme[2] < 3 * 200;
     const linuxPrintFlake = allWhite && expectedIsDark && !process.env.CI;
@@ -607,6 +593,15 @@ test('resume.json export — valid JSON Resume basics + work + meta.womr markdow
   expect(Array.isArray(json.work), 'work is an array').toBe(true);
   expect((json.work as unknown[]).length).toBeGreaterThan(0);
 
+  /* An ongoing role ("Present") must omit endDate rather than emit the
+     literal string — JSON Resume expects a date or nothing there. */
+  const work = json.work as Array<{ startDate?: unknown; endDate?: unknown }>;
+  const current = work.find((w) => w.startDate && !w.endDate);
+  expect(current, 'the Present role has a startDate and no endDate').toBeTruthy();
+  for (const w of work) {
+    expect(String(w.endDate ?? '')).not.toMatch(/present/i);
+  }
+
   /* meta.womr.markdownBody is the round-trip path the import side keys
      off (see fromJsonResume in src/utils/jsonresume.ts). Must be a
      non-empty string. */
@@ -617,9 +612,9 @@ test('resume.json export — valid JSON Resume basics + work + meta.womr markdow
 
   /* And the round-trip body still contains the canonical section headings. */
   for (const section of SAMPLE_SECTIONS) {
-    expect.soft(markdownBody as string, `round-trip body contains ## ${section}`).toMatch(
-      new RegExp(`^##\\s+${section}\\s*$`, 'm'),
-    );
+    expect
+      .soft(markdownBody as string, `round-trip body contains ## ${section}`)
+      .toMatch(new RegExp(`^##\\s+${section}\\s*$`, 'm'));
   }
 });
 
@@ -631,12 +626,7 @@ test('theme.css export — well-formed :root token block, has --resume-* tokens,
   browser,
   page,
 }, testInfo) => {
-  const path = await clickDownload(
-    page,
-    /download theme css/i,
-    'theme.css',
-    testInfo.project.name,
-  );
+  const path = await clickDownload(page, /download theme css/i, 'theme.css', testInfo.project.name);
   const css = readText(path);
 
   /* Size sanity — themes resolve to a small but non-empty token block. */
@@ -682,12 +672,7 @@ test('theme.css export — well-formed :root token block, has --resume-* tokens,
 test('resume.zip export — contains resume.md, resume.html, theme-*.css; entries decompress cleanly', async ({
   page,
 }, testInfo) => {
-  const path = await clickDownload(
-    page,
-    /download as \.zip/i,
-    'resume.zip',
-    testInfo.project.name,
-  );
+  const path = await clickDownload(page, /download as \.zip/i, 'resume.zip', testInfo.project.name);
   const size = statSync(path).size;
   expect(size, 'zip should be at least 5 KB').toBeGreaterThan(5_000);
 
@@ -723,4 +708,3 @@ test('resume.zip export — contains resume.md, resume.html, theme-*.css; entrie
   expect(html).toMatch(/<header class="resume-preview__contact">/);
   expect(html).toContain(SAMPLE_NAME);
 });
-
