@@ -34,10 +34,10 @@
   --ui-border-strong: #b9ad92;  /* heavier rule    — derived */
 
   --ui-fg: #2a241c;             /* warm near-black ink — oklch(0.22 0.020 70) */
-  --ui-fg-muted: #6b6253;       /* kickers, captions   — oklch(0.46 0.014 70) */
-  --ui-fg-subtle: #8a8170;      /* subtler tint        — derived */
+  --ui-fg-muted: #5f5749;       /* kickers, captions   — oklch(0.41 0.014 70) */
+  --ui-fg-subtle: #5f5749;      /* subtler tint        — derived */
 
-  --ui-accent: #9b5d28;         /* ochre ink-stamp — oklch(0.50 0.105 55) */
+  --ui-accent: #854b1b;         /* ochre ink-stamp — oklch(0.43 0.105 55) */
   --ui-accent-hover: #b16f33;   /* lighter ochre   — derived */
   --ui-accent-contrast: #fbf8f3;/* on-accent text — paper */
   --ui-success: #4d6b3a;        /* olive — restrained success */
@@ -1347,7 +1347,7 @@ body[data-app-phase='workbench'] .app-header {
   font-size: 0.62rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--ui-fg-subtle);
+  color: var(--ui-fg-muted);
   font-weight: 600;
 }
 

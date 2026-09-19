@@ -265,7 +265,7 @@
   background: var(--resume-card, #f6f8fa);
   border-left: 3px solid var(--resume-accent, #0b5cae);
   border-radius: 0 4px 4px 0;
-  color: var(--resume-muted, #57606a);
+  color: var(--resume-fg, #1f2328);
   font-style: italic;
 }
 

@@ -304,8 +304,8 @@ test.describe('Template files are reachable and well-formed', () => {
       const body = await response!.text();
 
       // Frontmatter must be at the very top, fenced by --- lines.
-      expect(body.startsWith('---\n'), `${slug}.md must start with frontmatter`).toBe(true);
-      const frontmatterEnd = body.indexOf('\n---', 4);
+      expect(/^---\r?\n/.test(body), `${slug}.md must start with frontmatter`).toBe(true);
+      const frontmatterEnd = body.search(/\r?\n---/);
       expect(frontmatterEnd, `${slug}.md must have a closing --- fence`).toBeGreaterThan(0);
       const frontmatter = body.slice(4, frontmatterEnd);
 
