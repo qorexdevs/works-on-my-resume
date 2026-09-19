@@ -25,10 +25,10 @@ const BASE_URL = `http://localhost:${PORT}/works-on-my-resume/`;
 
 export default defineConfig({
   testDir: 'tests/e2e',
-  /* Snapshots live under tests/e2e/screenshots, keyed only by snapshot
-     name — never by project / OS — so the same baseline file serves the
-     desktop project on every developer machine and CI. */
-  snapshotPathTemplate: '{testDir}/screenshots/{arg}{ext}',
+  /* Chromium text rendering differs between Windows and the Ubuntu runner.
+     Keep a baseline for each platform so a locally generated snapshot cannot
+     replace the Linux expectation used by CI. */
+  snapshotPathTemplate: '{testDir}/screenshots/{platform}/{arg}{ext}',
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
