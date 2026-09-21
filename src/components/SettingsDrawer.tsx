@@ -371,8 +371,8 @@ export default function SettingsDrawer({
               </ul>
               {!shortcutsEnabled && (
                 <p className="settings-drawer__shortcuts-off">
-                  Single-key shortcuts are off — only <kbd>Esc</kbd> works. Re-enable in the
-                  full shortcuts dialog.
+                  Single-key shortcuts are off — only <kbd>Esc</kbd> works. Re-enable in the full
+                  shortcuts dialog.
                 </p>
               )}
               <button

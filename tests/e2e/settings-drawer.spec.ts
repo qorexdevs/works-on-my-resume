@@ -17,11 +17,7 @@
  *   3. Click-outside closes the drawer.
  */
 import { test, expect } from '@playwright/test';
-import {
-  clearAppStorage,
-  loadSampleResume,
-  openSettingsDrawer,
-} from './helpers';
+import { clearAppStorage, loadSampleResume, openSettingsDrawer } from './helpers';
 
 test.beforeEach(async ({ page }) => {
   await clearAppStorage(page);
@@ -137,15 +133,11 @@ test('Help → Markdown format opens the format reference dialog', async ({ page
   // body — the body contains a YAML scaffold and a [paste your resume
   // here] placeholder, but the prefix is the contract that matters.
   const prompt = dialog.getByLabel('LLM handoff prompt');
-  await expect(prompt).toContainText(
-    /^Here's my resume in Works on My Resume markdown format\./,
-  );
+  await expect(prompt).toContainText(/^Here's my resume in Works on My Resume markdown format\./);
   await expect(prompt).toContainText(/\[paste your resume here\]/);
 
   // The privacy reminder is the closing one-liner.
-  await expect(
-    dialog.getByText(/all processing happens locally\./i),
-  ).toBeVisible();
+  await expect(dialog.getByText(/all processing happens locally\./i)).toBeVisible();
 
   // Click the close button to dismiss the dialog.
   await dialog.getByRole('button', { name: /close/i }).click();

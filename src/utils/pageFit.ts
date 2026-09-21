@@ -279,9 +279,7 @@ export function sectionHeights(previewEl: HTMLElement | null): readonly SectionM
     const heading = headings[i]!;
     const top = heading.getBoundingClientRect().top;
     const nextTop =
-      i + 1 < headings.length
-        ? headings[i + 1]!.getBoundingClientRect().top
-        : previewBottom;
+      i + 1 < headings.length ? headings[i + 1]!.getBoundingClientRect().top : previewBottom;
     const rawHeight = Math.max(0, nextTop - top);
     // Apply the same width-scale factor as estimatePages so per-section
     // shares sum to roughly the headline pill total.
@@ -341,8 +339,7 @@ export function trimSuggestions(
   }
 
   // Case-insensitive title lookup so "Summary" / "summary" both match.
-  const byTitle = (needle: RegExp) =>
-    sections.find((s) => needle.test(s.title));
+  const byTitle = (needle: RegExp) => sections.find((s) => needle.test(s.title));
 
   // 2. Long Summary — a Summary that runs longer than ~3 lines is a common
   //    over-page culprit. We approximate "3 lines" as ~75 CSS px of section

@@ -21,7 +21,15 @@
  * clear error; an oversized file produces a non-blocking warning but still
  * loads. Browsers without the File API degrade to a plain message.
  */
-import { forwardRef, useCallback, useId, useImperativeHandle, useMemo, useRef, useState } from 'react';
+import {
+  forwardRef,
+  useCallback,
+  useId,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import Icon from './Icon';
 import { fromJsonResume } from '../utils/jsonresume';
 import { fetchGistFiles, isGistUrl, type GistFile } from '../utils/gist';

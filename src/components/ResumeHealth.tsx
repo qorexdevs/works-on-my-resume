@@ -529,8 +529,7 @@ function FindingItem({
      there in the editor; otherwise open a dialog showing the bundled
      sample's section (#120). The Health panel intentionally doesn't know
      about the dialog fallback — it just hands the section name up. */
-  const canOpenExample =
-    finding.suggest?.kind === 'example' && onJumpToSection !== undefined;
+  const canOpenExample = finding.suggest?.kind === 'example' && onJumpToSection !== undefined;
 
   /**
    * Apply a candidate rewrite: insert above the offending line, close the
@@ -581,8 +580,7 @@ function FindingItem({
                 type="button"
                 className="health__item-example"
                 onClick={() =>
-                  finding.suggest?.kind === 'example' &&
-                  onJumpToSection?.(finding.suggest.section)
+                  finding.suggest?.kind === 'example' && onJumpToSection?.(finding.suggest.section)
                 }
               >
                 Open an example

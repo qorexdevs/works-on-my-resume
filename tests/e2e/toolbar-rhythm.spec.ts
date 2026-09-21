@@ -54,9 +54,7 @@ test('at 1280×800 the toolbar shows THEME, LAYOUT, FIT kicker labels', async ({
   const kickerTexts = await toolbar
     .locator('.section-kicker')
     .evaluateAll((nodes) =>
-      nodes
-        .map((n) => (n.textContent || '').trim().toLowerCase())
-        .filter((t) => t.length > 0),
+      nodes.map((n) => (n.textContent || '').trim().toLowerCase()).filter((t) => t.length > 0),
     );
 
   expect(kickerTexts).toEqual(expect.arrayContaining(['theme', 'layout']));
@@ -102,10 +100,7 @@ test('hairline separators are present between toolbar groups', async ({ page, is
      rendered box size. */
   const presentCount = await page
     .locator('.studio__toolbar .studio__toolbar-sep')
-    .evaluateAll(
-      (nodes) =>
-        nodes.filter((n) => (n as HTMLElement).offsetParent !== null).length,
-    );
+    .evaluateAll((nodes) => nodes.filter((n) => (n as HTMLElement).offsetParent !== null).length);
   expect(presentCount).toBeGreaterThanOrEqual(3);
 });
 
@@ -183,8 +178,6 @@ test('Theme picker trigger has no panel outline (drops the pill chrome)', async 
      the runtime reports `rgba(0, 0, 0, 0)` for that. Sampling computed
      style is safe here because the :hover rule doesn't override the
      border-color (just the background). */
-  const borderTop = await trigger.evaluate(
-    (el) => getComputedStyle(el).borderTopColor,
-  );
+  const borderTop = await trigger.evaluate((el) => getComputedStyle(el).borderTopColor);
   expect(borderTop.replace(/\s/g, '')).toMatch(/(rgba\([^)]+,0\)|transparent)/);
 });

@@ -654,9 +654,7 @@ test('spelled-number finding fires for a quantity written in words', async ({ pa
   await expect(finding.getByRole('button', { name: /jump to line 11/i })).toBeVisible();
 });
 
-test('smart-punctuation finding fires for a curly apostrophe in a bullet', async ({
-  page,
-}) => {
+test('smart-punctuation finding fires for a curly apostrophe in a bullet', async ({ page }) => {
   const md = [
     '---',
     'name: Test User',
@@ -683,9 +681,7 @@ test('smart-punctuation finding fires for a curly apostrophe in a bullet', async
   await expect(finding.getByRole('button', { name: /jump to line 11/i })).toBeVisible();
 });
 
-test('space-before-punctuation finding fires for a space before a comma', async ({
-  page,
-}) => {
+test('space-before-punctuation finding fires for a space before a comma', async ({ page }) => {
   const md = [
     '---',
     'name: Test User',
@@ -793,9 +789,7 @@ test('contraction finding fires for a contraction in a bullet', async ({ page })
   await expect(finding.getByRole('button', { name: /jump to line 11/i })).toBeVisible();
 });
 
-test('verb-tense finding fires when one role mixes past and present openers', async ({
-  page,
-}) => {
+test('verb-tense finding fires when one role mixes past and present openers', async ({ page }) => {
   const md = [
     '---',
     'name: Test User',

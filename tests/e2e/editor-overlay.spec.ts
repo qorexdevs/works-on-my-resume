@@ -99,7 +99,8 @@ test('overlay scrollTop stays in sync with the textarea on scroll', async ({ pag
     .poll(
       async () =>
         textarea.evaluate(
-          (el) => (el as HTMLTextAreaElement).scrollHeight - (el as HTMLTextAreaElement).clientHeight,
+          (el) =>
+            (el as HTMLTextAreaElement).scrollHeight - (el as HTMLTextAreaElement).clientHeight,
         ),
       { timeout: 5_000 },
     )

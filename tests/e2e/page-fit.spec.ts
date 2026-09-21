@@ -150,15 +150,13 @@ test('selecting Themed in the chip flips body[data-print-mode] (#139)', async ({
 
   const modeSelect = page.locator('.page-fit__mode-select');
   await modeSelect.selectOption('theme');
-  await expect.poll(async () => page.evaluate(() => document.body.dataset.printMode)).toBe(
-    'theme',
-  );
+  await expect.poll(async () => page.evaluate(() => document.body.dataset.printMode)).toBe('theme');
 
   // Pick Conservative — the body attribute follows.
   await modeSelect.selectOption('conservative');
-  await expect.poll(async () => page.evaluate(() => document.body.dataset.printMode)).toBe(
-    'conservative',
-  );
+  await expect
+    .poll(async () => page.evaluate(() => document.body.dataset.printMode))
+    .toBe('conservative');
 });
 
 test('pressing Escape closes the popover and returns focus to the pill', async ({ page }) => {

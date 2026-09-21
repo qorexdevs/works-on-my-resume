@@ -106,19 +106,21 @@ test('#140 stat counters animate on mount and tag the check stat with --check-en
   // rendered while the lazy ~465-theme dataset is still resolving — the
   // boot fallback may be lower. The animation contract is: from 0, to a
   // positive integer, within ~1 s.
-  await expect.poll(
-    async () => {
-      const texts = await numericStats.allTextContents();
-      return texts.every((t) => {
-        const n = Number(t);
-        return Number.isInteger(n) && n > 0;
-      });
-    },
-    {
-      timeout: 1500,
-      message: 'stat counters should reach their final values within ~1 s',
-    },
-  ).toBe(true);
+  await expect
+    .poll(
+      async () => {
+        const texts = await numericStats.allTextContents();
+        return texts.every((t) => {
+          const n = Number(t);
+          return Number.isInteger(n) && n > 0;
+        });
+      },
+      {
+        timeout: 1500,
+        message: 'stat counters should reach their final values within ~1 s',
+      },
+    )
+    .toBe(true);
 
   // Sanity-check the icon stat: it carries the `--check-enter` modifier
   // when motion is allowed.

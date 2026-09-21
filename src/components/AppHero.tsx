@@ -49,12 +49,7 @@ function easeOutCubic(t: number): number {
  * Animate `node`'s textContent from 0 → `target` over `duration` ms after
  * `delay` ms. Returns a cancel handle for effect cleanup.
  */
-function tickUpTo(
-  node: HTMLElement,
-  target: number,
-  duration: number,
-  delay: number,
-): () => void {
+function tickUpTo(node: HTMLElement, target: number, duration: number, delay: number): () => void {
   let rafId = 0;
   let startedAt = 0;
   let cancelled = false;
@@ -130,10 +125,9 @@ export default function AppHero({ themeCount, layoutCount, templateCount }: AppH
       </div>
 
       <p className="app-hero__tagline">
-        A Markdown resume renderer for the browser. Type, pick a theme,
-        export a PDF — your file stays on your device. Swap themes with{' '}
-        <kbd>&larr;</kbd> <kbd>&rarr;</kbd>, <kbd>/</kbd> to search,{' '}
-        <kbd>r</kbd> for random.
+        A Markdown resume renderer for the browser. Type, pick a theme, export a PDF — your file
+        stays on your device. Swap themes with <kbd>&larr;</kbd> <kbd>&rarr;</kbd>, <kbd>/</kbd> to
+        search, <kbd>r</kbd> for random.
       </p>
 
       <div className="app-hero__stats" role="list" aria-label="At a glance">

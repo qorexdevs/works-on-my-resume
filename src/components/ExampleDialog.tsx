@@ -195,8 +195,8 @@ export default function ExampleDialog({
   } else if (sampleText !== null) {
     body = (
       <p className="health-example-dialog__fallback">
-        The bundled sample doesn&rsquo;t have a {sectionTitle} section. You can model your own
-        after the rest of the sample resume.
+        The bundled sample doesn&rsquo;t have a {sectionTitle} section. You can model your own after
+        the rest of the sample resume.
       </p>
     );
   } else {

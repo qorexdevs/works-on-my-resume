@@ -177,9 +177,7 @@ function buildContactHeaderHtml(frontmatter: ResumeFrontmatter): string {
         // Match the React component: the `·` separator only precedes items
         // at index ≥ 1, never the first item.
         const sep =
-          index > 0
-            ? '<span class="resume-preview__contact-sep" aria-hidden="true">·</span>'
-            : '';
+          index > 0 ? '<span class="resume-preview__contact-sep" aria-hidden="true">·</span>' : '';
         return `<span class="resume-preview__contact-meta-item">${sep}${item.html}</span>`;
       })
       .join('');

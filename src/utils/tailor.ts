@@ -525,10 +525,7 @@ function buildBundledEntries(): BundledEntry[] {
       norm: entry,
       display: titleCaseSoftEntry(entry),
       kind,
-      regex: new RegExp(
-        `(?<![\\p{L}\\p{N}])${escapeRegex(entry)}(?![\\p{L}\\p{N}])`,
-        'giu',
-      ),
+      regex: new RegExp(`(?<![\\p{L}\\p{N}])${escapeRegex(entry)}(?![\\p{L}\\p{N}])`, 'giu'),
     });
   }
   for (const entry of techTermsData as readonly string[]) {
@@ -541,10 +538,7 @@ function buildBundledEntries(): BundledEntry[] {
       // Bundled tech list is lowercase — preserve as-is.
       display: entry,
       kind,
-      regex: new RegExp(
-        `(?<![\\p{L}\\p{N}])${escapeRegex(entry)}(?![\\p{L}\\p{N}])`,
-        'giu',
-      ),
+      regex: new RegExp(`(?<![\\p{L}\\p{N}])${escapeRegex(entry)}(?![\\p{L}\\p{N}])`, 'giu'),
     });
   }
   return out;
@@ -839,11 +833,7 @@ const SOFT_SKILLS: ReadonlySet<string> = new Set(softSkillsData as readonly stri
 function looksLikeTechToken(displayToken: string, normToken: string): boolean {
   // All-caps acronym: ≥ 2 chars, only A-Z / 0-9, at least one letter.
   // Acronyms are by far the strongest tech signal in a JD.
-  if (
-    displayToken.length >= 2 &&
-    /^[A-Z0-9]+$/.test(displayToken) &&
-    /[A-Z]/.test(displayToken)
-  ) {
+  if (displayToken.length >= 2 && /^[A-Z0-9]+$/.test(displayToken) && /[A-Z]/.test(displayToken)) {
     return true;
   }
   // Tech-shape suffixes on tokens that either have tech-like punctuation /
@@ -851,8 +841,7 @@ function looksLikeTechToken(displayToken: string, normToken: string): boolean {
   // morphology. `mongodb`, `cosmosdb`, `graphql`, `nosql`, `nextjs`,
   // `node.js`, `vue.js`, `pgsql` all pass; `pubs`, `tabs`, `mods`, `webs`
   // don't.
-  const hasTechShape =
-    normToken.includes('.') || normToken.includes('-') || /\d/.test(normToken);
+  const hasTechShape = normToken.includes('.') || normToken.includes('-') || /\d/.test(normToken);
   if (hasTechShape || normToken.length >= 5) {
     if (/(?:\.js|js|sql|db|ql|api)$/.test(normToken)) return true;
   }

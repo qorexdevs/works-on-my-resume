@@ -645,160 +645,156 @@ export default function MarkdownEditor({
      `value` and `onChange` live in the dependency array of the handle so a
      ref consumer always sees the live document — without this the insert
      callback would close over a stale `value` and clobber later edits. */
-  useImperativeHandle(
-    editorRef,
-    () => {
-      /** Resolve a 1-based line index into [start, end) char offsets. */
-      function lineRange(line: number): {
-        start: number;
-        end: number;
-        text: string;
-        totalLines: number;
-      } | null {
-        const ta = textareaRef.current;
-        if (!ta) return null;
-        const text = ta.value;
-        if (text.length === 0) return null;
-        const parts = text.split('\n');
-        const totalLines = parts.length;
-        const clamped = Math.max(1, Math.min(line, totalLines));
-        let start = 0;
-        for (let i = 0; i < clamped - 1; i++) {
-          start += parts[i].length + 1; // +1 for the consumed '\n'
-        }
-        const end = start + parts[clamped - 1].length;
-        return { start, end, text: parts[clamped - 1], totalLines };
+  useImperativeHandle(editorRef, () => {
+    /** Resolve a 1-based line index into [start, end) char offsets. */
+    function lineRange(line: number): {
+      start: number;
+      end: number;
+      text: string;
+      totalLines: number;
+    } | null {
+      const ta = textareaRef.current;
+      if (!ta) return null;
+      const text = ta.value;
+      if (text.length === 0) return null;
+      const parts = text.split('\n');
+      const totalLines = parts.length;
+      const clamped = Math.max(1, Math.min(line, totalLines));
+      let start = 0;
+      for (let i = 0; i < clamped - 1; i++) {
+        start += parts[i].length + 1; // +1 for the consumed '\n'
       }
+      const end = start + parts[clamped - 1].length;
+      return { start, end, text: parts[clamped - 1], totalLines };
+    }
 
-      /** Approximate scroll: place the requested line near the top third. */
-      function scrollToLine(line: number, totalLines: number) {
+    /** Approximate scroll: place the requested line near the top third. */
+    function scrollToLine(line: number, totalLines: number) {
+      const ta = textareaRef.current;
+      if (!ta) return;
+      const ratio = totalLines > 1 ? (line - 1) / Math.max(1, totalLines - 1) : 0;
+      const maxScroll = Math.max(0, ta.scrollHeight - ta.clientHeight);
+      ta.scrollTop = Math.round(maxScroll * ratio);
+      if (gutterRef.current) gutterRef.current.scrollTop = ta.scrollTop;
+      if (overlayRef.current) overlayRef.current.scrollTop = ta.scrollTop;
+    }
+
+    return {
+      jumpToLine(line: number) {
         const ta = textareaRef.current;
         if (!ta) return;
-        const ratio = totalLines > 1 ? (line - 1) / Math.max(1, totalLines - 1) : 0;
+        if (ta.value.length === 0) {
+          ta.focus();
+          return;
+        }
+        const range = lineRange(line);
+        if (!range) return;
+        ta.focus();
+        ta.setSelectionRange(range.start, range.end);
+        const clamped = Math.max(1, Math.min(line, range.totalLines));
+        scrollToLine(clamped, range.totalLines);
+      },
+
+      jumpToOffender(line: number, offender: string) {
+        const ta = textareaRef.current;
+        if (!ta) return;
+        if (ta.value.length === 0) {
+          ta.focus();
+          return;
+        }
+        const range = lineRange(line);
+        if (!range) return;
+        ta.focus();
+        // Case-insensitive find inside the target line. The selection lands
+        // on the original casing the writer used (preserved from
+        // `range.text`), not on the analyzer's normalized echo.
+        const lower = range.text.toLowerCase();
+        const idx = lower.indexOf(offender.toLowerCase());
+        if (idx === -1) {
+          // Fall back to selecting the whole line — the finding still
+          // makes sense even if the user has since edited the offender.
+          ta.setSelectionRange(range.start, range.end);
+        } else {
+          ta.setSelectionRange(range.start + idx, range.start + idx + offender.length);
+        }
+        const clamped = Math.max(1, Math.min(line, range.totalLines));
+        scrollToLine(clamped, range.totalLines);
+      },
+
+      insertRewriteAboveLine(targetLine: number, rewrittenLine: string) {
+        const ta = textareaRef.current;
+        if (!ta) return;
+        // Compute the line-start offset against the live document — we
+        // cannot trust the textarea's `value` here because the controlled
+        // component sources its text from React state.
+        const parts = value.split('\n');
+        const totalLines = parts.length;
+        const clamped = Math.max(1, Math.min(targetLine, totalLines));
+        let lineStart = 0;
+        for (let i = 0; i < clamped - 1; i++) {
+          lineStart += parts[i].length + 1; // +1 for the consumed '\n'
+        }
+        const inserted = `${rewrittenLine}\n`;
+        const next = value.slice(0, lineStart) + inserted + value.slice(lineStart);
+        onChange(next);
+
+        // Defer focus + selection to after the controlled value has flushed
+        // to the DOM, otherwise our setSelectionRange targets the stale text.
+        window.setTimeout(() => {
+          const t = textareaRef.current;
+          if (!t) return;
+          t.focus();
+          // Select the inserted bullet so the writer can immediately see
+          // what was added (and `Tab`-out / edit it inline).
+          const selStart = lineStart;
+          const selEnd = lineStart + rewrittenLine.length;
+          t.setSelectionRange(selStart, selEnd);
+          setCaret(selStart);
+          // Re-derive the scroll target against the now-updated document.
+          const newTotal = totalLines + 1;
+          const ratio = newTotal > 1 ? (clamped - 1) / Math.max(1, newTotal - 1) : 0;
+          const maxScroll = Math.max(0, t.scrollHeight - t.clientHeight);
+          t.scrollTop = Math.round(maxScroll * ratio);
+          if (gutterRef.current) gutterRef.current.scrollTop = t.scrollTop;
+          if (overlayRef.current) overlayRef.current.scrollTop = t.scrollTop;
+        }, 0);
+      },
+
+      jumpToSection(sectionTitle: string) {
+        const ta = textareaRef.current;
+        if (!ta) return;
+        const text = ta.value;
+        if (text.length === 0) {
+          ta.focus();
+          return;
+        }
+        // Match an H2 heading (`## Title`) case-insensitively against the
+        // requested section title. No-op when the section isn't present
+        // in the source — the editor stays where it is.
+        const parts = text.split('\n');
+        const want = sectionTitle.toLowerCase().trim();
+        let target = -1;
+        for (let i = 0; i < parts.length; i++) {
+          const m = /^##\s+(?!#)(.+?)\s*$/.exec(parts[i]);
+          if (m && m[1].toLowerCase().trim() === want) {
+            target = i;
+            break;
+          }
+        }
+        if (target === -1) return;
+        let start = 0;
+        for (let i = 0; i < target; i++) start += parts[i].length + 1;
+        const end = start + parts[target].length;
+        ta.focus();
+        ta.setSelectionRange(start, end);
+        const ratio = parts.length > 1 ? target / Math.max(1, parts.length - 1) : 0;
         const maxScroll = Math.max(0, ta.scrollHeight - ta.clientHeight);
         ta.scrollTop = Math.round(maxScroll * ratio);
         if (gutterRef.current) gutterRef.current.scrollTop = ta.scrollTop;
         if (overlayRef.current) overlayRef.current.scrollTop = ta.scrollTop;
-      }
-
-      return {
-        jumpToLine(line: number) {
-          const ta = textareaRef.current;
-          if (!ta) return;
-          if (ta.value.length === 0) {
-            ta.focus();
-            return;
-          }
-          const range = lineRange(line);
-          if (!range) return;
-          ta.focus();
-          ta.setSelectionRange(range.start, range.end);
-          const clamped = Math.max(1, Math.min(line, range.totalLines));
-          scrollToLine(clamped, range.totalLines);
-        },
-
-        jumpToOffender(line: number, offender: string) {
-          const ta = textareaRef.current;
-          if (!ta) return;
-          if (ta.value.length === 0) {
-            ta.focus();
-            return;
-          }
-          const range = lineRange(line);
-          if (!range) return;
-          ta.focus();
-          // Case-insensitive find inside the target line. The selection lands
-          // on the original casing the writer used (preserved from
-          // `range.text`), not on the analyzer's normalized echo.
-          const lower = range.text.toLowerCase();
-          const idx = lower.indexOf(offender.toLowerCase());
-          if (idx === -1) {
-            // Fall back to selecting the whole line — the finding still
-            // makes sense even if the user has since edited the offender.
-            ta.setSelectionRange(range.start, range.end);
-          } else {
-            ta.setSelectionRange(range.start + idx, range.start + idx + offender.length);
-          }
-          const clamped = Math.max(1, Math.min(line, range.totalLines));
-          scrollToLine(clamped, range.totalLines);
-        },
-
-        insertRewriteAboveLine(targetLine: number, rewrittenLine: string) {
-          const ta = textareaRef.current;
-          if (!ta) return;
-          // Compute the line-start offset against the live document — we
-          // cannot trust the textarea's `value` here because the controlled
-          // component sources its text from React state.
-          const parts = value.split('\n');
-          const totalLines = parts.length;
-          const clamped = Math.max(1, Math.min(targetLine, totalLines));
-          let lineStart = 0;
-          for (let i = 0; i < clamped - 1; i++) {
-            lineStart += parts[i].length + 1; // +1 for the consumed '\n'
-          }
-          const inserted = `${rewrittenLine}\n`;
-          const next = value.slice(0, lineStart) + inserted + value.slice(lineStart);
-          onChange(next);
-
-          // Defer focus + selection to after the controlled value has flushed
-          // to the DOM, otherwise our setSelectionRange targets the stale text.
-          window.setTimeout(() => {
-            const t = textareaRef.current;
-            if (!t) return;
-            t.focus();
-            // Select the inserted bullet so the writer can immediately see
-            // what was added (and `Tab`-out / edit it inline).
-            const selStart = lineStart;
-            const selEnd = lineStart + rewrittenLine.length;
-            t.setSelectionRange(selStart, selEnd);
-            setCaret(selStart);
-            // Re-derive the scroll target against the now-updated document.
-            const newTotal = totalLines + 1;
-            const ratio = newTotal > 1 ? (clamped - 1) / Math.max(1, newTotal - 1) : 0;
-            const maxScroll = Math.max(0, t.scrollHeight - t.clientHeight);
-            t.scrollTop = Math.round(maxScroll * ratio);
-            if (gutterRef.current) gutterRef.current.scrollTop = t.scrollTop;
-            if (overlayRef.current) overlayRef.current.scrollTop = t.scrollTop;
-          }, 0);
-        },
-
-        jumpToSection(sectionTitle: string) {
-          const ta = textareaRef.current;
-          if (!ta) return;
-          const text = ta.value;
-          if (text.length === 0) {
-            ta.focus();
-            return;
-          }
-          // Match an H2 heading (`## Title`) case-insensitively against the
-          // requested section title. No-op when the section isn't present
-          // in the source — the editor stays where it is.
-          const parts = text.split('\n');
-          const want = sectionTitle.toLowerCase().trim();
-          let target = -1;
-          for (let i = 0; i < parts.length; i++) {
-            const m = /^##\s+(?!#)(.+?)\s*$/.exec(parts[i]);
-            if (m && m[1].toLowerCase().trim() === want) {
-              target = i;
-              break;
-            }
-          }
-          if (target === -1) return;
-          let start = 0;
-          for (let i = 0; i < target; i++) start += parts[i].length + 1;
-          const end = start + parts[target].length;
-          ta.focus();
-          ta.setSelectionRange(start, end);
-          const ratio = parts.length > 1 ? target / Math.max(1, parts.length - 1) : 0;
-          const maxScroll = Math.max(0, ta.scrollHeight - ta.clientHeight);
-          ta.scrollTop = Math.round(maxScroll * ratio);
-          if (gutterRef.current) gutterRef.current.scrollTop = ta.scrollTop;
-          if (overlayRef.current) overlayRef.current.scrollTop = ta.scrollTop;
-        },
-      };
-    },
-    [value, onChange],
-  );
+      },
+    };
+  }, [value, onChange]);
 
   return (
     <div className="editor">
@@ -935,11 +931,7 @@ export default function MarkdownEditor({
                   const entries = SNIPPETS.filter((s) => s.group === group.id);
                   if (entries.length === 0) return null;
                   return (
-                    <li
-                      key={group.id}
-                      role="none"
-                      className="editor__snippet-group"
-                    >
+                    <li key={group.id} role="none" className="editor__snippet-group">
                       <div
                         id={`${snippetMenuId}-${group.id}`}
                         className="editor__snippet-group-label"
@@ -1002,7 +994,7 @@ export default function MarkdownEditor({
             against the textarea's frame rather than the whole surface
             (which would leak the heading rail across the gutter). */}
         <div className="editor__pane">
-        {/* ----- Structural overlay (#141) -----
+          {/* ----- Structural overlay (#141) -----
             A purely decorative layer that sits behind the textarea and
             paints two subtle cues — a 2 px accent left-rail on heading
             lines, and a 1 px-tinted band over the leading frontmatter
@@ -1010,52 +1002,52 @@ export default function MarkdownEditor({
             textarea the controllable element; the overlay's
             `white-space: pre-wrap` (toggled to `pre` by `--nowrap`)
             mirrors the textarea so wrap behavior stays consistent. */}
-        <div className="editor__overlay" ref={overlayRef} aria-hidden="true">
-          {overlayRows.map((row) => {
-            const classes = ['editor__overlay-line'];
-            if (row.isHeading) classes.push('editor__overlay-heading');
-            if (row.isFrontmatter) classes.push('editor__overlay-frontmatter');
-            return (
-              <div key={row.index} className={classes.join(' ')}>
-                {row.text.length === 0 ? '\u00A0' : row.text}
-              </div>
-            );
-          })}
-        </div>
-        <textarea
-          id={textareaId}
-          ref={textareaRef}
-          className="editor__textarea"
-          value={value}
-          spellCheck={false}
-          autoComplete="off"
-          autoCapitalize="off"
-          autoCorrect="off"
-          wrap={softWrap ? 'soft' : 'off'}
-          placeholder={
-            'Paste your resume Markdown here,\nor upload a file / load the sample above.'
-          }
-          aria-describedby={`${textareaId}-meta`}
-          onChange={(event) => {
-            onChange(event.target.value);
-            setCaret(event.currentTarget.selectionStart);
-          }}
-          onSelect={(event) => setCaret(event.currentTarget.selectionStart)}
-          onClick={(event) => setCaret(event.currentTarget.selectionStart)}
-          onKeyUp={(event) => setCaret(event.currentTarget.selectionStart)}
-          onBlur={() => {
-            // When the textarea loses focus the affordance no longer makes
-            // sense — but we must NOT close the tray if focus is moving
-            // INTO it, so defer the clear and let the tray's own focus
-            // win the race.
-            window.setTimeout(() => {
-              const active = document.activeElement;
-              if (rewriteWrapRef.current?.contains(active)) return;
-              setCaret(null);
-            }, 0);
-          }}
-          onScroll={syncScroll}
-        />
+          <div className="editor__overlay" ref={overlayRef} aria-hidden="true">
+            {overlayRows.map((row) => {
+              const classes = ['editor__overlay-line'];
+              if (row.isHeading) classes.push('editor__overlay-heading');
+              if (row.isFrontmatter) classes.push('editor__overlay-frontmatter');
+              return (
+                <div key={row.index} className={classes.join(' ')}>
+                  {row.text.length === 0 ? '\u00A0' : row.text}
+                </div>
+              );
+            })}
+          </div>
+          <textarea
+            id={textareaId}
+            ref={textareaRef}
+            className="editor__textarea"
+            value={value}
+            spellCheck={false}
+            autoComplete="off"
+            autoCapitalize="off"
+            autoCorrect="off"
+            wrap={softWrap ? 'soft' : 'off'}
+            placeholder={
+              'Paste your resume Markdown here,\nor upload a file / load the sample above.'
+            }
+            aria-describedby={`${textareaId}-meta`}
+            onChange={(event) => {
+              onChange(event.target.value);
+              setCaret(event.currentTarget.selectionStart);
+            }}
+            onSelect={(event) => setCaret(event.currentTarget.selectionStart)}
+            onClick={(event) => setCaret(event.currentTarget.selectionStart)}
+            onKeyUp={(event) => setCaret(event.currentTarget.selectionStart)}
+            onBlur={() => {
+              // When the textarea loses focus the affordance no longer makes
+              // sense — but we must NOT close the tray if focus is moving
+              // INTO it, so defer the clear and let the tray's own focus
+              // win the race.
+              window.setTimeout(() => {
+                const active = document.activeElement;
+                if (rewriteWrapRef.current?.contains(active)) return;
+                setCaret(null);
+              }, 0);
+            }}
+            onScroll={syncScroll}
+          />
         </div>
       </div>
 

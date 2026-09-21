@@ -336,20 +336,79 @@ const VAGUE_QUANTIFIERS = [
  * "no one"), and ordinals (first, second) are legitimate in prose.
  */
 const SPELLED_NUMBERS = [
-  'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten',
-  'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen',
-  'seventeen', 'eighteen', 'nineteen', 'twenty', 'thirty', 'forty', 'fifty',
-  'sixty', 'seventy', 'eighty', 'ninety', 'hundred', 'thousand', 'million',
-  'billion', 'dozen',
+  'two',
+  'three',
+  'four',
+  'five',
+  'six',
+  'seven',
+  'eight',
+  'nine',
+  'ten',
+  'eleven',
+  'twelve',
+  'thirteen',
+  'fourteen',
+  'fifteen',
+  'sixteen',
+  'seventeen',
+  'eighteen',
+  'nineteen',
+  'twenty',
+  'thirty',
+  'forty',
+  'fifty',
+  'sixty',
+  'seventy',
+  'eighty',
+  'ninety',
+  'hundred',
+  'thousand',
+  'million',
+  'billion',
+  'dozen',
 ];
 const METRIC_NOUNS = [
-  'years?', 'months?', 'weeks?', 'days?', 'hours?', 'people', 'persons?',
-  'engineers?', 'developers?', 'designers?', 'employees?', 'members?',
-  'clients?', 'customers?', 'users?', 'projects?', 'teams?', 'products?',
-  'releases?', 'features?', 'services?', 'applications?', 'apps?', 'systems?',
-  'repositories?', 'repos?', 'countries?', 'markets?', 'languages?',
-  'partners?', 'vendors?', 'stakeholders?', 'times?', 'percent', 'awards?',
-  'patents?', 'papers?', 'interns?', 'reports?', 'contractors?',
+  'years?',
+  'months?',
+  'weeks?',
+  'days?',
+  'hours?',
+  'people',
+  'persons?',
+  'engineers?',
+  'developers?',
+  'designers?',
+  'employees?',
+  'members?',
+  'clients?',
+  'customers?',
+  'users?',
+  'projects?',
+  'teams?',
+  'products?',
+  'releases?',
+  'features?',
+  'services?',
+  'applications?',
+  'apps?',
+  'systems?',
+  'repositories?',
+  'repos?',
+  'countries?',
+  'markets?',
+  'languages?',
+  'partners?',
+  'vendors?',
+  'stakeholders?',
+  'times?',
+  'percent',
+  'awards?',
+  'patents?',
+  'papers?',
+  'interns?',
+  'reports?',
+  'contractors?',
 ];
 
 /**
@@ -955,10 +1014,7 @@ function checkVagueQuantifiers(markdown: string): HealthFinding[] {
  */
 function checkSpelledNumbers(markdown: string): HealthFinding[] {
   const bullets = findBullets(splitLines(markdown));
-  const re = new RegExp(
-    `\\b(${SPELLED_NUMBERS.join('|')})\\s+(${METRIC_NOUNS.join('|')})\\b`,
-    'i',
-  );
+  const re = new RegExp(`\\b(${SPELLED_NUMBERS.join('|')})\\s+(${METRIC_NOUNS.join('|')})\\b`, 'i');
   const findings: HealthFinding[] = [];
   for (const bullet of bullets) {
     const content = bullet.content.replace(/^[*_~`]+/, '').trimStart();
@@ -1073,8 +1129,13 @@ function checkExclamation(markdown: string): HealthFinding[] {
  * the problem is the character, not the phrasing.
  */
 const SMART_PUNCT: Record<string, string> = {
-  '‘': "'", '’': "'", '“': '"', '”': '"',
-  '–': '-', '—': '-', '…': '...',
+  '‘': "'",
+  '’': "'",
+  '“': '"',
+  '”': '"',
+  '–': '-',
+  '—': '-',
+  '…': '...',
 };
 
 function checkSmartPunctuation(markdown: string): HealthFinding[] {
@@ -1292,10 +1353,7 @@ function checkReferencesLine(markdown: string): HealthFinding[] {
  */
 function checkObjectiveStatement(markdown: string): HealthFinding[] {
   const fmEnd = frontmatterEndLine(markdown);
-  const opener = new RegExp(
-    `^(?:${OBJECTIVE_OPENERS.map(escapeRegExp).join('|')})\\b`,
-    'i',
-  );
+  const opener = new RegExp(`^(?:${OBJECTIVE_OPENERS.map(escapeRegExp).join('|')})\\b`, 'i');
   for (const li of splitLines(markdown)) {
     if (li.line <= fmEnd) continue;
     // Strip a leading bullet marker and any emphasis so the opener is tested
@@ -1325,10 +1383,7 @@ function checkObjectiveStatement(markdown: string): HealthFinding[] {
  */
 function checkPersonalDetails(markdown: string): HealthFinding[] {
   const fmEnd = frontmatterEndLine(markdown);
-  const re = new RegExp(
-    `\\b(${PERSONAL_DETAIL_LABELS.join('|')})\\b[*_~\`]*\\s*:`,
-    'i',
-  );
+  const re = new RegExp(`\\b(${PERSONAL_DETAIL_LABELS.join('|')})\\b[*_~\`]*\\s*:`, 'i');
   const findings: HealthFinding[] = [];
   for (const li of splitLines(markdown)) {
     if (li.line <= fmEnd) continue;
@@ -1616,23 +1671,113 @@ function checkBulletCapitalization(markdown: string): HealthFinding[] {
  * can't be pinned to one tense, so they're skipped rather than guessed.
  */
 const PRESENT_VERBS = new Set([
-  'build', 'lead', 'manage', 'develop', 'create', 'design', 'drive', 'own',
-  'maintain', 'write', 'run', 'ship', 'deliver', 'improve', 'optimize', 'reduce',
-  'increase', 'launch', 'scale', 'automate', 'architect', 'mentor', 'coordinate',
-  'implement', 'integrate', 'migrate', 'refactor', 'deploy', 'support', 'analyze',
-  'research', 'define', 'establish', 'oversee', 'streamline', 'spearhead', 'grow',
-  'win', 'sell', 'keep', 'hold', 'take', 'give', 'draw', 'meet', 'bring', 'teach',
-  'buy', 'seek', 'spend', 'send', 'find', 'plan', 'organize', 'direct', 'handle',
-  'head', 'boost', 'save', 'generate', 'enable', 'produce', 'monitor', 'debug',
-  'test', 'review', 'document', 'present', 'negotiate', 'recruit', 'train', 'hire',
-  'configure', 'orchestrate', 'prototype',
+  'build',
+  'lead',
+  'manage',
+  'develop',
+  'create',
+  'design',
+  'drive',
+  'own',
+  'maintain',
+  'write',
+  'run',
+  'ship',
+  'deliver',
+  'improve',
+  'optimize',
+  'reduce',
+  'increase',
+  'launch',
+  'scale',
+  'automate',
+  'architect',
+  'mentor',
+  'coordinate',
+  'implement',
+  'integrate',
+  'migrate',
+  'refactor',
+  'deploy',
+  'support',
+  'analyze',
+  'research',
+  'define',
+  'establish',
+  'oversee',
+  'streamline',
+  'spearhead',
+  'grow',
+  'win',
+  'sell',
+  'keep',
+  'hold',
+  'take',
+  'give',
+  'draw',
+  'meet',
+  'bring',
+  'teach',
+  'buy',
+  'seek',
+  'spend',
+  'send',
+  'find',
+  'plan',
+  'organize',
+  'direct',
+  'handle',
+  'head',
+  'boost',
+  'save',
+  'generate',
+  'enable',
+  'produce',
+  'monitor',
+  'debug',
+  'test',
+  'review',
+  'document',
+  'present',
+  'negotiate',
+  'recruit',
+  'train',
+  'hire',
+  'configure',
+  'orchestrate',
+  'prototype',
 ]);
 
 /** Irregular past forms the `-ed` rule wouldn't catch. */
 const IRREGULAR_PAST = new Set([
-  'led', 'built', 'ran', 'wrote', 'made', 'drove', 'grew', 'won', 'sold', 'kept',
-  'held', 'took', 'gave', 'drew', 'met', 'brought', 'taught', 'bought', 'sought',
-  'spent', 'sent', 'began', 'chose', 'oversaw', 'rebuilt', 'broke', 'spoke', 'rose',
+  'led',
+  'built',
+  'ran',
+  'wrote',
+  'made',
+  'drove',
+  'grew',
+  'won',
+  'sold',
+  'kept',
+  'held',
+  'took',
+  'gave',
+  'drew',
+  'met',
+  'brought',
+  'taught',
+  'bought',
+  'sought',
+  'spent',
+  'sent',
+  'began',
+  'chose',
+  'oversaw',
+  'rebuilt',
+  'broke',
+  'spoke',
+  'rose',
   'dealt',
 ]);
 

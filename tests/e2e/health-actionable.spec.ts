@@ -166,12 +166,8 @@ test('selecting a rewrite inserts a sibling bullet above the original line', asy
   // Rewrite is inserted as a sibling.
   expect(textareaValue).toContain('- Built the cache layer and the deploy pipeline.');
   // The "Built" line must appear BEFORE the original "Worked on" line.
-  const builtIdx = textareaValue.indexOf(
-    '- Built the cache layer and the deploy pipeline.',
-  );
-  const workedOnIdx = textareaValue.indexOf(
-    '- Worked on the cache layer and the deploy pipeline.',
-  );
+  const builtIdx = textareaValue.indexOf('- Built the cache layer and the deploy pipeline.');
+  const workedOnIdx = textareaValue.indexOf('- Worked on the cache layer and the deploy pipeline.');
   expect(builtIdx).toBeGreaterThan(-1);
   expect(workedOnIdx).toBeGreaterThan(builtIdx);
 });
@@ -242,9 +238,7 @@ test('first-person "Open an example" opens the bundled sample fallback dialog', 
   // title and the rendered slice's "Selected Impact" heading. Match the
   // slice one exactly so we don't accidentally accept the title and miss
   // the case where the body didn't render.
-  await expect(
-    dialog.getByRole('heading', { name: 'Selected Impact', exact: true }),
-  ).toBeVisible();
+  await expect(dialog.getByRole('heading', { name: 'Selected Impact', exact: true })).toBeVisible();
   // One of the bundled sample's bullets — assert the body content rendered,
   // not just the heading. The sample's first Selected Impact bullet opens
   // with "Cut median CI time".
@@ -363,7 +357,9 @@ test('coaching blocks render the celebrate strip, progress meter, and next-step 
   expect(meterText).toMatch(/█/);
   expect(meterText).toMatch(/^[█░]+$/);
   // The hint reads "<score> → 90 to advance to SENIOR" at the mid tier.
-  await expect(progress.locator('.resume-health__progress-hint')).toContainText(/advance to SENIOR/);
+  await expect(progress.locator('.resume-health__progress-hint')).toContainText(
+    /advance to SENIOR/,
+  );
 });
 
 test('coaching: clicking the Next step CTA jumps the editor to the offender line', async ({

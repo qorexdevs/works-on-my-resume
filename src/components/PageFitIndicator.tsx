@@ -26,15 +26,7 @@
  * checkbox in the popover) and defaults OFF so the preview reads clean
  * by default.
  */
-import {
-  useCallback,
-  useEffect,
-  useId,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { ParsedResume, PrintMode, ResumeTemplate } from '../types';
 import {
@@ -281,8 +273,7 @@ export default function PageFitIndicator({
      dropdown's aria-label spells out that the choice affects BOTH the
      in-app print path AND the Fit estimate so the previously-hidden link
      is no longer hidden. */
-  const modeAriaLabel =
-    'Print mode — affects the Save as PDF output and the Fit-pages estimate';
+  const modeAriaLabel = 'Print mode — affects the Save as PDF output and the Fit-pages estimate';
 
   return (
     <>
@@ -362,9 +353,7 @@ export default function PageFitIndicator({
                   {sections.map((section) => (
                     <li key={section.title} className="page-fit__section">
                       <span className="page-fit__section-name">{section.title}</span>
-                      <span className="page-fit__section-pages">
-                        {section.pages.toFixed(2)} pg
-                      </span>
+                      <span className="page-fit__section-pages">{section.pages.toFixed(2)} pg</span>
                     </li>
                   ))}
                 </ul>
@@ -399,7 +388,10 @@ export default function PageFitIndicator({
         )}
       </div>
 
-      {rulerOn && pane && article && rulerLineCount > 0 &&
+      {rulerOn &&
+        pane &&
+        article &&
+        rulerLineCount > 0 &&
         createPortal(
           <RulerOverlay parent={pane} article={article} lineCount={rulerLineCount} />,
           pane,

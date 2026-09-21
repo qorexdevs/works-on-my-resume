@@ -216,8 +216,7 @@ export default function FormatDocsDialog({ onClose }: FormatDocsDialogProps) {
         {/* ----- 1. What + how (one paragraph) ----- */}
         <p id={descId} className="format-docs__intro">
           Write your resume in Markdown. We render it, we don&rsquo;t store it. Frontmatter at the
-          top, <code>##</code> for sections, <code>###</code> for roles, <code>-</code> for
-          bullets.
+          top, <code>##</code> for sections, <code>###</code> for roles, <code>-</code> for bullets.
         </p>
 
         {/* ----- 2. Frontmatter contract ----- */}
@@ -307,11 +306,7 @@ export default function FormatDocsDialog({ onClose }: FormatDocsDialogProps) {
               <Icon name={copied ? 'check' : 'file'} size={14} />
               {copied ? 'Copied' : 'Copy to clipboard'}
             </button>
-            <span
-              className="format-docs__prompt-status"
-              aria-live="polite"
-              aria-atomic="true"
-            >
+            <span className="format-docs__prompt-status" aria-live="polite" aria-atomic="true">
               {copied ? 'Prompt copied to clipboard.' : ''}
             </span>
           </div>

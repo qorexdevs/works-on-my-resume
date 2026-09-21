@@ -41,21 +41,14 @@ async function expectNoSeriousOrCritical(
   stateLabel: string,
   disabledRules: readonly string[] = [],
 ): Promise<void> {
-  let builder = new AxeBuilder({ page }).withTags([
-    'wcag2a',
-    'wcag2aa',
-    'wcag21a',
-    'wcag21aa',
-  ]);
+  let builder = new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']);
   if (disabledRules.length > 0) {
     builder = builder.disableRules([...disabledRules]);
   }
   const results = await builder.analyze();
 
   const violations: Result[] = results.violations;
-  const blocking = violations.filter(
-    (v) => v.impact === 'serious' || v.impact === 'critical',
-  );
+  const blocking = violations.filter((v) => v.impact === 'serious' || v.impact === 'critical');
   const moderate = violations.filter((v) => v.impact === 'moderate' || v.impact === 'minor');
 
   // Log the full picture for the state. Moderate/minor land in the console
@@ -83,13 +76,16 @@ async function expectNoSeriousOrCritical(
       .join('\n');
     // Surface the violation summary in the failure message so CI logs alone
     // tell a maintainer what broke.
-    expect(blocking, `a11y violations (serious/critical) in state "${stateLabel}":\n${summary}`)
-      .toEqual([]);
+    expect(
+      blocking,
+      `a11y violations (serious/critical) in state "${stateLabel}":\n${summary}`,
+    ).toEqual([]);
   }
 }
 
 test.beforeEach(async ({ page }) => {
   await clearAppStorage(page);
+  await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto('');
 });
 

@@ -134,7 +134,12 @@
   @page {
     @bottom-right {
       content: var(--print-page-footer);
-      font: 10pt 'Source Serif 4', Charter, 'Iowan Old Style', Georgia, serif;
+      font:
+        10pt 'Source Serif 4',
+        Charter,
+        'Iowan Old Style',
+        Georgia,
+        serif;
       color: rgb(0 0 0 / 0.6);
       /* Pull the footer in from the page edge so it sits inside the
          body's 0.6in padding visually, matching the resume's margin. */

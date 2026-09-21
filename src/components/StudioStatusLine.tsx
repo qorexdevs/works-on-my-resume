@@ -39,13 +39,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { RefObject } from 'react';
 import type { CareerStage, WordsSeverity } from '../utils/health';
-import {
-  analyzeResume,
-  targetPages,
-  wordCount,
-  wordsSeverity,
-  wordsTarget,
-} from '../utils/health';
+import { analyzeResume, targetPages, wordCount, wordsSeverity, wordsTarget } from '../utils/health';
 import { estimatePages } from '../utils/pageFit';
 import { wcagLevel } from '../utils/wcag';
 import { getStoredCareerStage } from '../utils/storage';
@@ -221,10 +215,7 @@ export default function StudioStatusLine({
   const words = useMemo(() => wordCount(markdown), [markdown]);
   const wordsTargetCount = useMemo(() => wordsTarget(stage), [stage]);
   const wordsPagesTarget = useMemo(() => targetPages(stage), [stage]);
-  const wordsSev = useMemo(
-    () => wordsSeverity(words, wordsTargetCount),
-    [words, wordsTargetCount],
-  );
+  const wordsSev = useMemo(() => wordsSeverity(words, wordsTargetCount), [words, wordsTargetCount]);
 
   const worstRatio = Math.min(wcag.fgOnBg, wcag.accentOnBg);
   const level = wcagLevel(worstRatio);
@@ -241,12 +232,7 @@ export default function StudioStatusLine({
      the breakpoint rule has something to target without component-level
      window-listening. */
   return (
-    <div
-      className="studio__statusline"
-      data-print-hide
-      role="status"
-      aria-label="Studio status"
-    >
+    <div className="studio__statusline" data-print-hide role="status" aria-label="Studio status">
       <span className="studio__statusline-seg studio__statusline-seg--filename">
         <span className="studio__statusline-value" title={sourceName}>
           {sourceName}

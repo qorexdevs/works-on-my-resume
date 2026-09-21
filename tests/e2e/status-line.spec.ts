@@ -66,18 +66,14 @@ test('the status line mounts when a resume is loaded and shows the filename + li
   await expect(line.locator('.studio__statusline-seg--health')).toContainText(/\d+\s+(JR|MID|SR)/);
 });
 
-test('the lines segment counts the markdown lines (desktop only)', async ({
-  page,
-}, testInfo) => {
+test('the lines segment counts the markdown lines (desktop only)', async ({ page }, testInfo) => {
   test.skip(isMobileProject(testInfo), 'lines segment is hidden on mobile (#134)');
   await loadSampleResume(page);
   const line = await statusLine(page);
   await expect(line.locator('.studio__statusline-seg--lines')).toContainText(/\d+\s+lines?/);
 });
 
-test('the Fit segment renders a compact pages label (desktop only)', async ({
-  page,
-}, testInfo) => {
+test('the Fit segment renders a compact pages label (desktop only)', async ({ page }, testInfo) => {
   test.skip(isMobileProject(testInfo), 'fit segment is hidden on mobile (#134)');
   await loadSampleResume(page);
   const line = await statusLine(page);
@@ -141,7 +137,9 @@ test('the cursor segment updates as the user moves the caret (desktop only)', as
   // Move to end of the first line — column is some N > 1, line stays 1.
   // Avoids pinning on the sample's exact first-line length.
   await textarea.press('End');
-  await expect(line.locator('.studio__statusline-seg--cursor')).toContainText(/L1:[2-9]\d*|L1:1\d+/);
+  await expect(line.locator('.studio__statusline-seg--cursor')).toContainText(
+    /L1:[2-9]\d*|L1:1\d+/,
+  );
 });
 
 test('the ●draft indicator appears when the buffer diverges from the loaded baseline', async ({

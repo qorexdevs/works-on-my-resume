@@ -26,23 +26,23 @@
   /* App chrome surfaces — warm paper. Each step is OKLCH-derived so the
      light/dark pair lives in the same perceptual space. The chrome reads
      as cream stationery with ink and a single ochre stamp. */
-  --ui-bg: #fbf8f3;             /* paper           — oklch(0.985 0.008 85) */
-  --ui-bg-elevated: #f6f1e8;    /* card body       — oklch(0.972 0.010 85) */
-  --ui-panel: #ece5d7;          /* toolbar pill bed — oklch(0.945 0.013 85) */
-  --ui-panel-hover: #e2d9c5;    /* hover wash      — derived */
-  --ui-border: #d4cab4;         /* hairline        — oklch(0.88 0.012 80) */
-  --ui-border-strong: #b9ad92;  /* heavier rule    — derived */
+  --ui-bg: #fbf8f3; /* paper           — oklch(0.985 0.008 85) */
+  --ui-bg-elevated: #f6f1e8; /* card body       — oklch(0.972 0.010 85) */
+  --ui-panel: #ece5d7; /* toolbar pill bed — oklch(0.945 0.013 85) */
+  --ui-panel-hover: #e2d9c5; /* hover wash      — derived */
+  --ui-border: #d4cab4; /* hairline        — oklch(0.88 0.012 80) */
+  --ui-border-strong: #b9ad92; /* heavier rule    — derived */
 
-  --ui-fg: #2a241c;             /* warm near-black ink — oklch(0.22 0.020 70) */
-  --ui-fg-muted: #5f5749;       /* kickers, captions   — oklch(0.41 0.014 70) */
-  --ui-fg-subtle: #5f5749;      /* subtler tint        — derived */
+  --ui-fg: #2a241c; /* warm near-black ink — oklch(0.22 0.020 70) */
+  --ui-fg-muted: #5f5749; /* kickers, captions   — oklch(0.41 0.014 70) */
+  --ui-fg-subtle: #5f5749; /* subtler tint        — derived */
 
-  --ui-accent: #854b1b;         /* ochre ink-stamp — oklch(0.43 0.105 55) */
-  --ui-accent-hover: #b16f33;   /* lighter ochre   — derived */
-  --ui-accent-contrast: #fbf8f3;/* on-accent text — paper */
-  --ui-success: #4d6b3a;        /* olive — restrained success */
-  --ui-warning: #b46a1f;        /* sienna — sits next to ochre without clashing */
-  --ui-danger: #a23a2a;         /* terracotta */
+  --ui-accent: #854b1b; /* ochre ink-stamp — oklch(0.43 0.105 55) */
+  --ui-accent-hover: #b16f33; /* lighter ochre   — derived */
+  --ui-accent-contrast: #fbf8f3; /* on-accent text — paper */
+  --ui-success: #4d6b3a; /* olive — restrained success */
+  --ui-warning: #b46a1f; /* sienna — sits next to ochre without clashing */
+  --ui-danger: #a23a2a; /* terracotta */
 
   --ui-focus-ring: #9b5d28;
 
@@ -107,18 +107,18 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --ui-bg: #181410;             /* warm ink — oklch(0.18 0.012 60) */
-    --ui-bg-elevated: #221d18;    /* card body — oklch(0.23 0.014 60) */
-    --ui-panel: #2d2620;          /* toolbar pill bed */
+    --ui-bg: #181410; /* warm ink — oklch(0.18 0.012 60) */
+    --ui-bg-elevated: #221d18; /* card body — oklch(0.23 0.014 60) */
+    --ui-panel: #2d2620; /* toolbar pill bed */
     --ui-panel-hover: #3a3128;
     --ui-border: #3b322a;
     --ui-border-strong: #574a3e;
 
-    --ui-fg: #efe6d6;             /* warm paper text — oklch(0.92 0.012 85) */
+    --ui-fg: #efe6d6; /* warm paper text — oklch(0.92 0.012 85) */
     --ui-fg-muted: #b8ab93;
     --ui-fg-subtle: #8a7f6a;
 
-    --ui-accent: #d18a4f;         /* lifted ochre so it carries on dark paper */
+    --ui-accent: #d18a4f; /* lifted ochre so it carries on dark paper */
     --ui-accent-hover: #e09c63;
     --ui-accent-contrast: #1a1410;
     --ui-success: #94a872;
@@ -890,7 +890,10 @@ body[data-app-phase='workbench'] .app-header {
 }
 
 .studio__toolbar--ats-active .studio__toolbar-themable .studio__toolbar-collapsible > *:hover,
-.studio__toolbar--ats-active .studio__toolbar-themable .studio__toolbar-collapsible > *:focus-within {
+.studio__toolbar--ats-active
+  .studio__toolbar-themable
+  .studio__toolbar-collapsible
+  > *:focus-within {
   opacity: 0.7;
 }
 
@@ -4239,7 +4242,7 @@ body[data-app-phase='hero'] .uploader__actions .btn--primary {
 .resume-health__progress-delta {
   flex-basis: 100%;
   margin-top: 2px;
-  padding-left: 5.0rem;
+  padding-left: 5rem;
   color: var(--ui-fg-subtle);
   font-size: 0.7rem;
 }

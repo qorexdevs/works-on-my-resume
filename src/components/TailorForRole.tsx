@@ -410,9 +410,7 @@ export default function TailorForRole({
   );
 
   const hitRateLabel =
-    matches && matches.length > 0
-      ? formatHitRate(matchedTerms.length, matches.length)
-      : null;
+    matches && matches.length > 0 ? formatHitRate(matchedTerms.length, matches.length) : null;
 
   /* Compact `Tech 5/12 · Soft 3/8 · Domain 2/4` sub-chip. We only render
      categories with at least one term to keep the chip from looking
@@ -593,11 +591,7 @@ function CategoryGroup({ category, label, stats }: CategoryGroupProps): React.JS
   // exactly the affordance native `<details>` provides.
   const fractionLabel = `${stats.matched}/${stats.total}`;
   return (
-    <details
-      className={`tailor__group tailor__group--${category}`}
-      data-category={category}
-      open
-    >
+    <details className={`tailor__group tailor__group--${category}`} data-category={category} open>
       <summary className="tailor__group-summary" aria-describedby={summaryId}>
         <Icon name="chevron-down" size={12} className="tailor__group-caret" />
         <span className="tailor__group-label">{label}</span>
@@ -615,7 +609,9 @@ function CategoryGroup({ category, label, stats }: CategoryGroupProps): React.JS
             </span>
           </header>
           {stats.matches.length === 0 ? (
-            <p className="tailor__section-empty">No JD keywords in this bucket appear in your resume yet.</p>
+            <p className="tailor__section-empty">
+              No JD keywords in this bucket appear in your resume yet.
+            </p>
           ) : (
             <ul className="tailor__list tailor__list--matches">
               {stats.matches.map((m) => (
@@ -639,7 +635,8 @@ function CategoryGroup({ category, label, stats }: CategoryGroupProps): React.JS
           </header>
           {stats.gaps.length === 0 ? (
             <p className="tailor__section-empty">
-              Nothing notable missing in this bucket — every JD keyword we recognized here is in your resume.
+              Nothing notable missing in this bucket — every JD keyword we recognized here is in
+              your resume.
             </p>
           ) : (
             <ul className="tailor__list tailor__list--gaps">

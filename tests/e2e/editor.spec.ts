@@ -179,7 +179,9 @@ test('bullet-rewrite tray surfaces and inserts a sibling bullet above the origin
   await trigger.click();
   const tray = page.getByRole('menu', { name: /bullet rewrite suggestions/i });
   await expect(tray).toBeVisible();
-  const verbUpgrade = tray.getByRole('menuitem', { name: /verb upgrade.*helped organize.*organized/i });
+  const verbUpgrade = tray.getByRole('menuitem', {
+    name: /verb upgrade.*helped organize.*organized/i,
+  });
   await expect(verbUpgrade).toBeVisible();
 
   // Click the verb-upgrade candidate — the resulting document must carry
