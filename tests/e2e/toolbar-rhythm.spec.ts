@@ -171,8 +171,9 @@ test('Theme picker trigger has no panel outline (drops the pill chrome)', async 
   });
 
   /* The resting-state rule declares `background: transparent` (or an
-     equivalent zero-alpha rgba). Accept either. */
-  expect(restingBg.replace(/\s/g, '')).toMatch(/(rgba\([^)]+,0\)|transparent)/);
+     equivalent zero-alpha rgba). Astro 7 may minify it to `0px 0px`.
+     Accept either serialization. */
+  expect(restingBg.replace(/\s/g, '')).toMatch(/^(?:rgba\([^)]+,0\)|transparent|0px0px)$/);
 
   /* The border-top color is computed from `border: 1px solid transparent`;
      the runtime reports `rgba(0, 0, 0, 0)` for that. Sampling computed

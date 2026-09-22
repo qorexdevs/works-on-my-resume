@@ -89,6 +89,11 @@ export default defineConfig({
        overridable via `E2E_PORT`, #146) so parallel-worktree runs can sit
        on different ports without colliding. */
     command: `npm run build && npm run preview -- --port ${PORT} --host 127.0.0.1`,
+    // Astro 7 backgrounds preview automatically when an agent is detected.
+    // Playwright owns this process, so it needs to remain in the foreground.
+    env: {
+      ASTRO_PREVIEW_BACKGROUND: '0',
+    },
     url: BASE_URL,
     timeout: 180_000,
     reuseExistingServer: !process.env.CI,
