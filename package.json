@@ -27,7 +27,7 @@
     "test:e2e:update": "playwright test --update-snapshots"
   },
   "dependencies": {
-    "@astrojs/react": "^5.0.5",
+    "@astrojs/react": "^7.0.0",
     "astro": "^7.3.3",
     "dompurify": "^3.4.5",
     "js-yaml": "^4.1.1",
