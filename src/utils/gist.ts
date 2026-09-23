@@ -98,8 +98,9 @@ function isMarkdownFile(file: GistApiFile): boolean {
 /**
  * Pick the index of the file in `files` most likely to be the resume.
  * Strategy (unchanged from the original `pickResumeFile`):
- *   1. The first `.md` / `.markdown` file by filename (case-insensitive).
- *   2. Failing that, any file whose language is "Markdown".
+ *   1. The first non-empty `.md` / `.markdown` file by filename
+ *      (case-insensitive).
+ *   2. Failing that, any non-empty file whose language is "Markdown".
  *   3. Failing that, the first file whose content is non-empty text.
  * Returns `-1` if no candidate is found.
  */
@@ -108,11 +109,11 @@ function pickDefaultIndex(files: GistFile[]): number {
 
   const byExt = files.findIndex((f) => {
     const name = f.filename.toLowerCase();
-    return name.endsWith('.md') || name.endsWith('.markdown');
+    return f.content.length > 0 && (name.endsWith('.md') || name.endsWith('.markdown'));
   });
   if (byExt !== -1) return byExt;
 
-  const byLang = files.findIndex((f) => f.isMarkdown);
+  const byLang = files.findIndex((f) => f.content.length > 0 && f.isMarkdown);
   if (byLang !== -1) return byLang;
 
   const byContent = files.findIndex((f) => f.content.length > 0);
