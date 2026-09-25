@@ -391,12 +391,12 @@ function MarkdownUploaderImpl(
     if (!gistPreview) return;
     const picked = gistPreview.files[gistPreview.selectedIndex];
     if (!picked) return;
+    if (picked.truncated) {
+      setError('That file is too large to import via the API. Try downloading it manually.');
+      return;
+    }
     if (picked.content.length === 0) {
-      setError(
-        picked.truncated
-          ? 'That file is too large to import via the API. Try downloading it manually.'
-          : 'That file is empty — pick another file from the Gist.',
-      );
+      setError('That file is empty — pick another file from the Gist.');
       return;
     }
     onLoad(picked.content, picked.filename || 'gist.md');

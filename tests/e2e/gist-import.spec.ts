@@ -2,6 +2,42 @@ import { test, expect } from '@playwright/test';
 import { clearAppStorage } from './helpers';
 
 test.describe('Gist import', () => {
+  test('rejects a manually selected truncated file instead of importing its preview', async ({
+    page,
+  }) => {
+    await clearAppStorage(page);
+    await page.route('https://api.github.com/gists/fedcba9876', async (route) => {
+      await route.fulfill({
+        contentType: 'application/json',
+        body: JSON.stringify({
+          files: {
+            'resume.md': {
+              filename: 'resume.md',
+              language: 'Markdown',
+              content: '# Jordan Lee',
+            },
+            'archive.md': {
+              filename: 'archive.md',
+              language: 'Markdown',
+              content: '# Jordan Lee\nPartial archive',
+              truncated: true,
+            },
+          },
+        }),
+      });
+    });
+
+    await page.goto('');
+    await page.getByText('Import from a public GitHub Gist', { exact: true }).click();
+    await page.getByLabel('Gist URL').fill('https://gist.github.com/qorexdev/fedcba9876');
+    await page.getByRole('button', { name: /^import$/i }).click();
+    await page.getByLabel(/^file \(2\)$/i).selectOption('1');
+    await page.getByRole('button', { name: /^use this$/i }).click();
+
+    await expect(page.getByRole('alert')).toHaveText(/too large to import via the API/i);
+    await expect(page.getByRole('heading', { name: 'Preview before importing' })).toBeVisible();
+  });
+
   test('rejects a truncated default file instead of previewing partial content', async ({
     page,
   }) => {
