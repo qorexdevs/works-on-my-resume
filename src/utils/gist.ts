@@ -109,14 +109,16 @@ function pickDefaultIndex(files: GistFile[]): number {
 
   const byExt = files.findIndex((f) => {
     const name = f.filename.toLowerCase();
-    return f.content.length > 0 && (name.endsWith('.md') || name.endsWith('.markdown'));
+    return (
+      !f.truncated && f.content.length > 0 && (name.endsWith('.md') || name.endsWith('.markdown'))
+    );
   });
   if (byExt !== -1) return byExt;
 
-  const byLang = files.findIndex((f) => f.content.length > 0 && f.isMarkdown);
+  const byLang = files.findIndex((f) => !f.truncated && f.content.length > 0 && f.isMarkdown);
   if (byLang !== -1) return byLang;
 
-  const byContent = files.findIndex((f) => f.content.length > 0);
+  const byContent = files.findIndex((f) => !f.truncated && f.content.length > 0);
   return byContent;
 }
 
@@ -232,6 +234,9 @@ export async function fetchGistFiles(
 
   const defaultIndex = pickDefaultIndex(files);
   if (defaultIndex === -1) {
+    if (files.some((file) => file.truncated)) {
+      throw new Error('That Gist is too large to import via the API. Try downloading it manually.');
+    }
     throw new Error('That Gist had no Markdown or text content to import.');
   }
 
